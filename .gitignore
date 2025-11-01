@@ -1,0 +1,65 @@
+# Foundry
+out/
+cache/
+broadcast/
+lib/
+
+# Go
+*.exe
+*.exe~
+*.dll
+*.so
+*.dylib
+*.test
+*.out
+vendor/
+bin/
+tmp/
+
+# Environment
+.env
+.env.local
+.env.*.local
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Logs
+logs/
+*.log
+npm-debug.log*
+
+# Database
+*.db
+*.sqlite
+*.sqlite3
+
+# Coverage
+coverage/
+coverage.txt
+*.coverprofile
+
+# Build
+build/
+dist/
+
+# Node
+node_modules/
+package-lock.json
+yarn.lock
+
+# Test
+.testcache/
+
+# Temporary
+tmp/
+temp/
+*.tmp

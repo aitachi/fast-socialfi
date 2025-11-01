@@ -1,0 +1,1709 @@
+SocialFi 产品核心功能架构表（拓展与深化版）
+模块分类	功能名称	功能描述与核心价值	必要性说明
+1. 基础功能
+(产品骨架，缺一不可)	去中心化身份与数据底层	核心价值：确保用户身份、社交关系与关键数据的自主权与可移植性，是Web3社交的基石。	必须。无此则为Web2应用。
+- 去中心化身份（DID）	用户通过钱包（如 MetaMask）或 ENS 等实现无需注册的登录，身份与链上地址绑定。	
+- 链上社交图谱	用户关系（关注/被关注）存储在链上或去中心化存储（如 Ceramic、Lens Protocol）。	
+【+】数据索引与查询节点	提供高效、快速的链上及链下混合数据的索引和查询服务。没有它，前端应用无法流畅展示动态和信息流。	必须。这是连接区块链数据与用户界面的桥梁，直接影响产品可用性。
+内容创作、存储与互动	核心价值：提供社交场景，是所有价值创造和行为数据的来源。	必须。这是“Social”的载体。
+- 内容发布	支持发布文本、图片、视频等内容。	
+- 内容存储	内容数据通过IPFS/Arweave等去中心化存储，确保不可篡改和永久性。	
+- 基础互动	记录点赞、评论、转发等行为。	
+【+】私钥管理与账户安全中心	提供清晰的私钥/助记词备份、导出流程，以及交易签名确认、授权管理等功能。核心价值：保障用户资产安全，建立信任。	必须。安全是金融属性的生命线，任何疏忽都会导致灾难性后果。
+代币化激励机制	核心价值：建立飞轮效应，将用户行为直接与经济激励挂钩。	必须。这是“Fi”的直接体现。
+- 平台代币经济模型	设计合理的发行、分配和消耗机制。	
+【+】Gas费抽象与中继服务	通过ERC-4337或中继网络为用户支付Gas费，或以平台代币支付，实现无感交易。核心价值：大幅降低新用户使用门槛。	必须。糟糕的Gas体验是Web3产品用户增长的最大障碍之一。
+2. 重要功能
+(决定产品竞争力)	核心用户体验	核心价值：提升用户粘性和留存，是产品能否留住人的关键。	常见且关键。
+- 个性化信息流（Feed）算法	基于社交图谱、兴趣和代币持仓等进行内容推荐。	
+- 实时通知系统	对链上交互（如打赏、NFT铸造）和链下互动（如评论、关注）进行即时推送。	
+创作者经济体系	核心价值：为创作者提供多样化的变现渠道，是构建健康生态的核心。	核心竞争力。
+- 打赏与付费内容	支持多代币直接打赏和Token-gated内容。	
+- 粉丝徽章与NFT	提供专属身份和权益。	
+✅ 一键发币与社区启动器	核心价值：产品生态的“原子弹”，将影响力代币化，创造全新经济模型。	核心竞争力。是SocialFi的灵魂功能。
+- 个人/社区代币发行	用户/社区可一键部署代币，设置参数。	
+【+】代币发行模板与安全审计	提供经过专业审计的、模板化的智能合约（如ERC-20， ERC-1155），杜绝漏洞。核心价值：保障发币功能的安全与可信，这是生命线。	必须与一键发币绑定。没有安全，该功能即是灾难。
+- 初始流动性解决方案	与DEX集成，提供简化的初始流动性添加方式。	
+社交化金融（SocialFi）场景	核心价值：增加代币效用，将金融行为社交化，深化生态。	重要。
+- 社交化质押与治理	质押代币支持创作者或社区，并获得权益。	
+【+】收入/分红追踪系统	让创作者和投资者清晰追踪其代币、NFT或质押池产生的收益。核心价值：提供透明的财务可视化，增强信心和参与度。	重要。金融产品必须提供清晰的财务反馈。
+生态与合规	核心价值：保障社区健康，并确保项目的长期生存能力。	重要。
+- 反垃圾与声誉系统	基于链上行为构建信誉分，防止女巫攻击。	
+
+
+
+SocialFi产品完整设计方案
+1. 用户数据结构设计
+用户主表结构
+sql
+
+-- PostgreSQL Schema
+CREATE TABLE users (
+    -- 基础标识
+    user_id BIGSERIAL PRIMARY KEY,
+    wallet_address VARCHAR(42) UNIQUE NOT NULL,
+    ens_name VARCHAR(255),
+    
+    -- 个人信息
+    username VARCHAR(50) UNIQUE,
+    display_name VARCHAR(100),
+    bio TEXT,
+    avatar_ipfs_hash VARCHAR(66),
+    cover_ipfs_hash VARCHAR(66),
+    
+    -- 社交数据
+    follower_count INTEGER DEFAULT 0,
+    following_count INTEGER DEFAULT 0,
+    circle_count INTEGER DEFAULT 0,
+    
+    -- 信誉系统
+    reputation_score NUMERIC(10,2) DEFAULT 0,
+    total_trading_volume NUMERIC(30,18) DEFAULT 0,
+    total_content_count INTEGER DEFAULT 0,
+    total_reward_received NUMERIC(30,18) DEFAULT 0,
+    
+    -- 链上数据
+    nft_count INTEGER DEFAULT 0,
+    token_portfolio_value NUMERIC(30,18) DEFAULT 0,
+    
+    -- 时间戳
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+    last_active_at TIMESTAMP WITH TIME ZONE,
+    
+    -- 索引
+    CONSTRAINT valid_wallet_address CHECK (wallet_address ~* '^0x[a-f0-9]{40}$')
+);
+
+-- 创建索引
+CREATE INDEX idx_users_wallet ON users(wallet_address);
+CREATE INDEX idx_users_username ON users(username);
+CREATE INDEX idx_users_reputation ON users(reputation_score DESC);
+CREATE INDEX idx_users_created_at ON users(created_at DESC);
+CREATE INDEX idx_users_last_active ON users(last_active_at DESC);
+5条用户示例数据
+sql
+
+INSERT INTO users (
+    wallet_address, ens_name, username, display_name, bio, 
+    avatar_ipfs_hash, reputation_score, follower_count, 
+    following_count, circle_count, total_trading_volume,
+    total_content_count, total_reward_received, nft_count,
+    token_portfolio_value, last_active_at
+) VALUES 
+(
+    '0x742d35cc6634c0532925a3b844bc9e7595f0beb1',
+    'alice.eth',
+    'alice_crypto',
+    'Alice Chen',
+    'Web3 builder & DeFi enthusiast. Love photography and sharing blockchain insights.',
+    'QmYwAPJzv5CZsnA625s3Xf2nemtYgPpHdWEz79ojWnPbdG',
+    2850.50,
+    1520,
+    380,
+    5,
+    125.75,
+    89,
+    45.25,
+    12,
+    380.50,
+    '2025-10-30 10:30:00+00'
+),
+(
+    '0x8ba1f109551bd432803012645ac136ddd64dba72',
+    'bob.eth',
+    'bob_trader',
+    'Bob Martinez',
+    'NFT collector | Crypto trader | Building the future of SocialFi',
+    'QmPZ9gcCEpqKTo6aq61g4nXGUhM1bjyXJDuCBGVhQoJW4E',
+    1950.25,
+    892,
+    512,
+    3,
+    89.30,
+    45,
+    28.80,
+    28,
+    520.75,
+    '2025-10-30 09:15:00+00'
+),
+(
+    '0xdd2fd4581271e230360230f9337d5c0430bf44c0',
+    NULL,
+    'carol_dev',
+    'Carol Wang',
+    'Smart contract developer. Creating decentralized social experiences.',
+    'QmXoypizjW3WknFiJnKLwHCnL72vedxjQkDDP1mXWo6uco',
+    3200.75,
+    2340,
+    890,
+    8,
+    256.40,
+    156,
+    98.60,
+    8,
+    1250.30,
+    '2025-10-30 11:45:00+00'
+),
+(
+    '0xbcd4042de499d14e55001ccbb24a551f3b954096',
+    'david.eth',
+    'david_artist',
+    'David Kim',
+    'Digital artist exploring Web3 creative economy. Minting memories on-chain.',
+    'QmYHNYAaYK5hm3ZhZFx5W9H6xrCchSd1ar1pz3R2Q38uNt',
+    1250.00,
+    3450,
+    125,
+    2,
+    45.20,
+    234,
+    156.75,
+    45,
+    680.90,
+    '2025-10-30 08:20:00+00'
+),
+(
+    '0x71c7656ec7ab88b098defb751b7401b5f6d8976f',
+    NULL,
+    'emma_dao',
+    'Emma Johnson',
+    'DAO governance expert. Helping communities coordinate on-chain.',
+    'QmNfF5QKsKXrFkBXPc39G1VxGj8hW6GtSUMkNBqhDHVhLr',
+    890.30,
+    445,
+    678,
+    1,
+    12.50,
+    23,
+    8.40,
+    3,
+    95.20,
+    '2025-10-29 16:30:00+00'
+);
+2. 用户关系Graph三元组数据结构
+关系图谱设计
+sql
+
+-- 用户关系表（Follow/Unfollow）
+CREATE TABLE user_relationships (
+    relationship_id BIGSERIAL PRIMARY KEY,
+    
+    -- 三元组：Subject - Predicate - Object
+    from_user_id BIGINT NOT NULL REFERENCES users(user_id) ON DELETE CASCADE,
+    relationship_type VARCHAR(20) NOT NULL, -- 'FOLLOWS', 'BLOCKS', 'COLLABORATES'
+    to_user_id BIGINT NOT NULL REFERENCES users(user_id) ON DELETE CASCADE,
+    
+    -- 关系强度（用于推荐算法）
+    strength_score NUMERIC(5,2) DEFAULT 1.0,
+    interaction_count INTEGER DEFAULT 0,
+    
+    -- 时间戳
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+    
+    -- 约束
+    CONSTRAINT unique_relationship UNIQUE(from_user_id, relationship_type, to_user_id),
+    CONSTRAINT no_self_relationship CHECK (from_user_id != to_user_id)
+);
+
+-- 索引优化
+CREATE INDEX idx_relationships_from ON user_relationships(from_user_id, relationship_type);
+CREATE INDEX idx_relationships_to ON user_relationships(to_user_id, relationship_type);
+CREATE INDEX idx_relationships_strength ON user_relationships(strength_score DESC);
+CREATE INDEX idx_relationships_created ON user_relationships(created_at DESC);
+
+-- 用户-圈子关系表
+CREATE TABLE user_circle_relationships (
+    uc_relationship_id BIGSERIAL PRIMARY KEY,
+    
+    -- 三元组
+    user_id BIGINT NOT NULL REFERENCES users(user_id) ON DELETE CASCADE,
+    relationship_type VARCHAR(20) NOT NULL, -- 'OWNS', 'MEMBER', 'MODERATOR'
+    circle_id BIGINT NOT NULL,
+    
+    -- 关系数据
+    token_balance NUMERIC(30,18) DEFAULT 0,
+    join_price NUMERIC(30,18),
+    contribution_score NUMERIC(10,2) DEFAULT 0,
+    
+    -- 权限
+    can_post BOOLEAN DEFAULT TRUE,
+    can_moderate BOOLEAN DEFAULT FALSE,
+    
+    -- 时间戳
+    joined_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+    last_interaction_at TIMESTAMP WITH TIME ZONE,
+    
+    CONSTRAINT unique_user_circle UNIQUE(user_id, circle_id)
+);
+
+CREATE INDEX idx_uc_user ON user_circle_relationships(user_id);
+CREATE INDEX idx_uc_circle ON user_circle_relationships(circle_id);
+CREATE INDEX idx_uc_type ON user_circle_relationships(relationship_type);
+CREATE INDEX idx_uc_contribution ON user_circle_relationships(contribution_score DESC);
+Graph三元组示例数据
+sql
+
+-- 用户关注关系
+INSERT INTO user_relationships (from_user_id, relationship_type, to_user_id, strength_score, interaction_count) VALUES
+-- Alice关注Bob和Carol
+(1, 'FOLLOWS', 2, 3.5, 45),  -- Alice -> FOLLOWS -> Bob (高互动)
+(1, 'FOLLOWS', 3, 5.0, 89),  -- Alice -> FOLLOWS -> Carol (非常高互动)
+
+-- Bob关注Alice和David
+(2, 'FOLLOWS', 1, 2.0, 12),  -- Bob -> FOLLOWS -> Alice
+(2, 'FOLLOWS', 4, 1.5, 8),   -- Bob -> FOLLOWS -> David
+
+-- Carol关注Alice和Emma
+(3, 'FOLLOWS', 1, 4.0, 67),  -- Carol -> FOLLOWS -> Alice
+(3, 'FOLLOWS', 5, 2.5, 23),  -- Carol -> FOLLOWS -> Emma
+
+-- David关注所有人
+(4, 'FOLLOWS', 1, 1.0, 5),   -- David -> FOLLOWS -> Alice
+(4, 'FOLLOWS', 2, 1.0, 3),   -- David -> FOLLOWS -> Bob
+(4, 'FOLLOWS', 3, 1.0, 7),   -- David -> FOLLOWS -> Carol
+
+-- Emma关注Carol（协作关系）
+(5, 'FOLLOWS', 3, 3.0, 34),       -- Emma -> FOLLOWS -> Carol
+(5, 'COLLABORATES', 3, 4.5, 12);  -- Emma -> COLLABORATES -> Carol
+
+-- 用户-圈子关系（假设已有5个圈子）
+INSERT INTO user_circle_relationships (
+    user_id, relationship_type, circle_id, token_balance, 
+    join_price, contribution_score, can_moderate
+) VALUES
+-- Alice的圈子关系
+(1, 'OWNS', 1, 1000000.0, 0, 1000.0, TRUE),      -- Alice拥有Circle #1
+(1, 'MEMBER', 2, 500.0, 0.05, 85.5, FALSE),      -- Alice是Circle #2成员
+(1, 'MODERATOR', 3, 2500.0, 0.08, 450.0, TRUE),  -- Alice是Circle #3版主
+
+-- Bob的圈子关系
+(2, 'OWNS', 2, 800000.0, 0, 800.0, TRUE),        -- Bob拥有Circle #2
+(2, 'MEMBER', 1, 350.0, 0.06, 45.0, FALSE),      -- Bob是Circle #1成员
+
+-- Carol的圈子关系
+(3, 'OWNS', 3, 1500000.0, 0, 1500.0, TRUE),      -- Carol拥有Circle #3
+(3, 'MEMBER', 1, 1200.0, 0.05, 320.0, FALSE),    -- Carol是Circle #1成员
+(3, 'MEMBER', 4, 890.0, 0.1, 156.0, FALSE),      -- Carol是Circle #4成员
+
+-- David的圈子关系
+(4, 'OWNS', 4, 600000.0, 0, 600.0, TRUE),        -- David拥有Circle #4
+(4, 'MEMBER', 1, 120.0, 0.07, 12.0, FALSE),      -- David是Circle #1成员
+
+-- Emma的圈子关系
+(5, 'OWNS', 5, 300000.0, 0, 300.0, TRUE),        -- Emma拥有Circle #5
+(5, 'MODERATOR', 3, 1500.0, 0.08, 280.0, TRUE);  -- Emma是Circle #3版主
+3. 完整功能列表与专业拓展
+核心功能模块（必须实现）
+A. 用户系统
+✅ Web3钱包连接（MetaMask, WalletConnect）
+✅ ENS域名解析与显示
+✅ 个人资料编辑（存储至IPFS）
+✅ 信誉评分系统（链上+链下混合计算）
+✅ 用户等级体系（根据信誉分级）
+B. 圈子（Circle）系统
+✅ 创建圈子并自动部署ERC-20代币合约
+✅ Bonding Curve定价机制（线性或指数曲线）
+✅ 圈子代币交易（买入/卖出）
+✅ 圈子治理投票（ERC-20投票权重）
+✅ 圈子成员管理（白名单/黑名单）
+✅ 圈子数据看板（TVL, 成员数, 活跃度）
+C. 内容系统
+✅ 发布内容（文字、图片存IPFS）
+✅ 内容NFT化（优质内容铸造为NFT）
+✅ 代币打赏机制
+✅ 内容投票（上/下投）
+✅ 评论系统（二级评论）
+✅ 内容审核（社区投票移除）
+D. 交易系统
+✅ 圈子代币DEX（基于Bonding Curve）
+✅ 手续费分配机制（圈主、平台、流动性池）
+✅ 交易历史记录
+✅ 价格K线图（集成TradingView）
+✅ 持仓查询
+E. 社交图谱
+✅ 关注/取消关注
+✅ 好友推荐算法（基于Graph）
+✅ 社交动态Feed
+✅ @提及功能
+✅ 私信系统（加密）
+专业拓展模块（提升完整性）
+F. DeFi集成
+✅ 流动性挖矿：提供流动性获得奖励
+✅ 质押系统：质押平台代币获得收益
+✅ 收益聚合器：自动复投收益
+G. NFT系统
+✅ 个人NFT展示墙
+✅ 内容NFT市场：交易内容NFT
+✅ 会员NFT：持有特定NFT解锁高级功能
+✅ NFT徽章系统：成就解锁
+H. 数据分析
+✅ 用户行为分析Dashboard
+✅ 圈子健康度评分
+✅ 交易数据可视化
+✅ Dune Analytics集成（使用提供的API Key）
+I. 安全与合规
+✅ KYC可选集成（使用第三方服务）
+✅ 反女巫攻击（Gitcoin Passport集成）
+✅ 内容审核AI
+✅ 智能合约审计报告展示
+J. 跨链支持
+✅ 多链部署（Ethereum, Polygon, Arbitrum）
+✅ 跨链桥集成
+✅ 多链资产聚合显示
+4. 技术架构设计
+A. Foundry + Solidity 智能合约架构
+reasonml
+
+contracts/
+├── core/
+│   ├── CircleFactory.sol          # 圈子工厂合约
+│   ├── CircleToken.sol             # ERC-20圈子代币模板
+│   ├── BondingCurve.sol            # 定价曲线逻辑
+│   └── Platform.sol                # 平台治理合约
+├── finance/
+│   ├── TradingPair.sol             # 交易对合约
+│   ├── FeeDistributor.sol          # 手续费分配
+│   ├── Staking.sol                 # 质押合约
+│   └── LiquidityMining.sol         # 流动性挖矿
+├── content/
+│   ├── ContentRegistry.sol         # 内容注册表
+│   ├── ContentNFT.sol              # 内容NFT (ERC-721)
+│   └── RewardPool.sol              # 打赏池
+├── governance/
+│   ├── CircleGovernor.sol          # 圈子治理
+│   └── ProposalExecutor.sol        # 提案执行器
+├── security/
+│   ├── ReentrancyGuard.sol
+│   ├── Pausable.sol
+│   └── AccessControl.sol
+└── libraries/
+    ├── BondingCurveMath.sol        # 数学库
+    └── SafeTransfer.sol
+关键合约设计：
+
+solidity
+
+// CircleFactory.sol - 核心工厂合约
+contract CircleFactory {
+    event CircleCreated(
+        address indexed creator,
+        address indexed circleToken,
+        uint256 circleId,
+        string name,
+        string symbol
+    );
+    
+    mapping(uint256 => Circle) public circles;
+    uint256 public circleCount;
+    
+    struct Circle {
+        address owner;
+        address tokenAddress;
+        address bondingCurve;
+        uint256 createdAt;
+        bool active;
+    }
+    
+    function createCircle(
+        string memory name,
+        string memory symbol,
+        CurveType curveType
+    ) external returns (uint256 circleId);
+}
+B. The Graph 索引设计
+为什么需要这样设计：
+
+实时性：链上事件需要快速查询展示
+复杂查询：Graph支持GraphQL，可以做复杂关联查询
+降低RPC压力：避免直接查询节点
+历史数据：可以查询任意区块高度的历史状态
+Subgraph Schema设计：
+
+graphql
+
+# schema.graphql
+type User @entity {
+  id: ID!                              # wallet address
+  walletAddress: Bytes!
+  ensName: String
+  username: String
+  
+  # 统计数据
+  circlesCreated: [Circle!]! @derivedFrom(field: "owner")
+  circlesMember: [CircleMembership!]! @derivedFrom(field: "user")
+  followersCount: BigInt!
+  followingCount: BigInt!
+  reputationScore: BigDecimal!
+  
+  # 交易数据
+  totalTradingVolume: BigDecimal!
+  totalRewardsReceived: BigDecimal!
+  
+  # 时间戳
+  createdAt: BigInt!
+  updatedAt: BigInt!
+  lastActiveAt: BigInt!
+  
+  # 关系
+  following: [UserRelationship!]! @derivedFrom(field: "fromUser")
+  followers: [UserRelationship!]! @derivedFrom(field: "toUser")
+}
+
+type Circle @entity {
+  id: ID!                              # circle contract address
+  circleId: BigInt!
+  name: String!
+  symbol: String!
+  owner: User!
+  tokenAddress: Bytes!
+  bondingCurveAddress: Bytes!
+  
+  # 代币数据
+  totalSupply: BigDecimal!
+  currentPrice: BigDecimal!
+  marketCap: BigDecimal!
+  
+  # 统计数据
+  memberCount: BigInt!
+  postCount: BigInt!
+  totalVolume: BigDecimal!
+  
+  # 时间戳
+  createdAt: BigInt!
+  updatedAt: BigInt!
+  
+  # 关系
+  members: [CircleMembership!]! @derivedFrom(field: "circle")
+  posts: [Post!]! @derivedFrom(field: "circle")
+  trades: [Trade!]! @derivedFrom(field: "circle")
+}
+
+type CircleMembership @entity {
+  id: ID!                              # user-circle-id
+  user: User!
+  circle: Circle!
+  role: MemberRole!                    # OWNER, MODERATOR, MEMBER
+  tokenBalance: BigDecimal!
+  joinPrice: BigDecimal!
+  contributionScore: BigDecimal!
+  joinedAt: BigInt!
+  lastInteractionAt: BigInt!
+}
+
+type UserRelationship @entity {
+  id: ID!                              # from-to-type
+  fromUser: User!
+  toUser: User!
+  relationshipType: RelationType!      # FOLLOWS, BLOCKS, COLLABORATES
+  strengthScore: BigDecimal!
+  interactionCount: BigInt!
+  createdAt: BigInt!
+  updatedAt: BigInt!
+}
+
+type Post @entity {
+  id: ID!                              # tx hash + log index
+  author: User!
+  circle: Circle!
+  contentHash: String!                 # IPFS hash
+  contentType: ContentType!            # TEXT, IMAGE, VIDEO
+  
+  # 互动数据
+  upvotes: BigInt!
+  downvotes: BigInt!
+  commentCount: BigInt!
+  rewardAmount: BigDecimal!
+  
+  # NFT化
+  isNFT: Boolean!
+  nftTokenId: BigInt
+  
+  createdAt: BigInt!
+  updatedAt: BigInt!
+  
+  # 关系
+  comments: [Comment!]! @derivedFrom(field: "post")
+  rewards: [Reward!]! @derivedFrom(field: "post")
+}
+
+type Trade @entity {
+  id: ID!                              # tx hash
+  trader: User!
+  circle: Circle!
+  tradeType: TradeType!                # BUY, SELL
+  tokenAmount: BigDecimal!
+  ethAmount: BigDecimal!
+  price: BigDecimal!
+  fee: BigDecimal!
+  timestamp: BigInt!
+  blockNumber: BigInt!
+}
+
+type Reward @entity {
+  id: ID!
+  from: User!
+  to: User!
+  post: Post!
+  amount: BigDecimal!
+  timestamp: BigInt!
+}
+
+type Comment @entity {
+  id: ID!
+  author: User!
+  post: Post!
+  content: String!
+  parentComment: Comment
+  upvotes: BigInt!
+  createdAt: BigInt!
+}
+
+enum MemberRole {
+  OWNER
+  MODERATOR
+  MEMBER
+}
+
+enum RelationType {
+  FOLLOWS
+  BLOCKS
+  COLLABORATES
+}
+
+enum ContentType {
+  TEXT
+  IMAGE
+  VIDEO
+  LINK
+}
+
+enum TradeType {
+  BUY
+  SELL
+}
+索引映射设计：
+
+typescript
+
+// mapping.ts
+import { CircleCreated, TokenTraded } from '../generated/CircleFactory/CircleFactory'
+import { Circle, Trade, User } from '../generated/schema'
+
+export function handleCircleCreated(event: CircleCreated): void {
+  // 创建Circle实体
+  let circle = new Circle(event.params.circleToken.toHex())
+  circle.circleId = event.params.circleId
+  circle.name = event.params.name
+  circle.symbol = event.params.symbol
+  circle.owner = event.params.creator.toHex()
+  circle.tokenAddress = event.params.circleToken
+  circle.createdAt = event.block.timestamp
+  circle.memberCount = BigInt.fromI32(1)
+  circle.save()
+  
+  // 更新或创建User
+  let user = User.load(event.params.creator.toHex())
+  if (user == null) {
+    user = new User(event.params.creator.toHex())
+    user.walletAddress = event.params.creator
+    user.createdAt = event.block.timestamp
+  }
+  user.save()
+}
+
+export function handleTokenTraded(event: TokenTraded): void {
+  // 创建Trade实体
+  let trade = new Trade(event.transaction.hash.toHex())
+  trade.trader = event.params.trader.toHex()
+  trade.circle = event.params.circleToken.toHex()
+  trade.tradeType = event.params.isBuy ? 'BUY' : 'SELL'
+  trade.tokenAmount = event.params.tokenAmount.toBigDecimal()
+  trade.ethAmount = event.params.ethAmount.toBigDecimal()
+  trade.timestamp = event.block.timestamp
+  trade.save()
+}
+为什么这样设计Graph索引：
+
+实体关系清晰：User-Circle-Post形成完整的社交图谱
+双向关联：使用@derivedFrom减少冗余存储
+统计字段：在索引层计算统计数据，减轻后端压力
+历史追溯：Trade、Reward等实体记录完整历史
+查询优化：常用查询字段直接存储（如memberCount）
+C. PostgreSQL 数据库设计
+为什么需要PostgreSQL：
+
+链下数据存储：用户资料、私信等不适合上链
+全文搜索：支持复杂的内容搜索
+缓存层：缓存The Graph查询结果，提升速度
+业务逻辑：推荐算法、Feed流等需要复杂查询
+完整数据库Schema：
+
+sql
+
+-- ============================================
+-- 用户相关表
+-- ============================================
+
+-- 用户主表（已在前面定义，这里补充索引优化）
+CREATE TABLE users (
+    user_id BIGSERIAL PRIMARY KEY,
+    wallet_address VARCHAR(42) UNIQUE NOT NULL,
+    ens_name VARCHAR(255),
+    username VARCHAR(50) UNIQUE,
+    display_name VARCHAR(100),
+    bio TEXT,
+    avatar_ipfs_hash VARCHAR(66),
+    cover_ipfs_hash VARCHAR(66),
+    email VARCHAR(255),
+    twitter_handle VARCHAR(50),
+    github_handle VARCHAR(50),
+    
+    -- 统计字段（从Graph同步）
+    follower_count INTEGER DEFAULT 0,
+    following_count INTEGER DEFAULT 0,
+    circle_count INTEGER DEFAULT 0,
+    reputation_score NUMERIC(10,2) DEFAULT 0,
+    total_trading_volume NUMERIC(30,18) DEFAULT 0,
+    total_content_count INTEGER DEFAULT 0,
+    total_reward_received NUMERIC(30,18) DEFAULT 0,
+    nft_count INTEGER DEFAULT 0,
+    token_portfolio_value NUMERIC(30,18) DEFAULT 0,
+    
+    -- 用户设置
+    notification_enabled BOOLEAN DEFAULT TRUE,
+    email_verified BOOLEAN DEFAULT FALSE,
+    kyc_verified BOOLEAN DEFAULT FALSE,
+    is_banned BOOLEAN DEFAULT FALSE,
+    
+    -- 时间戳
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+    last_active_at TIMESTAMP WITH TIME ZONE,
+    
+    CONSTRAINT valid_wallet_address CHECK (wallet_address ~* '^0x[a-f0-9]{40}$')
+);
+
+-- 索引设计说明：
+-- 1. wallet_address: 登录查询（高频）
+-- 2. username: 搜索用户（中频）
+-- 3. reputation_score DESC: 排行榜查询（中频）
+-- 4. created_at DESC: 新用户列表（低频）
+-- 5. last_active_at DESC: 活跃用户查询（中频）
+CREATE INDEX idx_users_wallet ON users(wallet_address);
+CREATE INDEX idx_users_username ON users(username) WHERE username IS NOT NULL;
+CREATE INDEX idx_users_reputation ON users(reputation_score DESC);
+CREATE INDEX idx_users_created_at ON users(created_at DESC);
+CREATE INDEX idx_users_last_active ON users(last_active_at DESC);
+CREATE INDEX idx_users_kyc ON users(kyc_verified) WHERE kyc_verified = TRUE;
+
+-- GIN索引用于全文搜索
+CREATE INDEX idx_users_search ON users USING GIN(
+    to_tsvector('english', COALESCE(username, '') || ' ' || COALESCE(display_name, '') || ' ' || COALESCE(bio, ''))
+);
+
+-- ============================================
+-- 关系图谱表
+-- ============================================
+
+-- 用户关系表
+CREATE TABLE user_relationships (
+    relationship_id BIGSERIAL PRIMARY KEY,
+    from_user_id BIGINT NOT NULL REFERENCES users(user_id) ON DELETE CASCADE,
+    relationship_type VARCHAR(20) NOT NULL,
+    to_user_id BIGINT NOT NULL REFERENCES users(user_id) ON DELETE CASCADE,
+    strength_score NUMERIC(5,2) DEFAULT 1.0,
+    interaction_count INTEGER DEFAULT 0,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+    
+    CONSTRAINT unique_relationship UNIQUE(from_user_id, relationship_type, to_user_id),
+    CONSTRAINT no_self_relationship CHECK (from_user_id != to_user_id),
+    CONSTRAINT valid_relationship_type CHECK (relationship_type IN ('FOLLOWS', 'BLOCKS', 'COLLABORATES'))
+);
+
+-- 复合索引设计说明：
+-- 1. (from_user_id, relationship_type): 查询某用户的所有关注
+-- 2. (to_user_id, relationship_type): 查询某用户的所有粉丝
+-- 3. strength_score DESC: 推荐算法排序
+CREATE INDEX idx_relationships_from_type ON user_relationships(from_user_id, relationship_type);
+CREATE INDEX idx_relationships_to_type ON user_relationships(to_user_id, relationship_type);
+CREATE INDEX idx_relationships_strength ON user_relationships(strength_score DESC);
+CREATE INDEX idx_relationships_created ON user_relationships(created_at DESC);
+
+-- ============================================
+-- 圈子相关表
+-- ============================================
+
+-- 圈子主表（同步自链上，但包含更多元数据）
+CREATE TABLE circles (
+    circle_id BIGINT PRIMARY KEY,
+    owner_id BIGINT NOT NULL REFERENCES users(user_id),
+    contract_address VARCHAR(42) UNIQUE NOT NULL,
+    name VARCHAR(100) NOT NULL,
+    symbol VARCHAR(20) NOT NULL,
+    description TEXT,
+    category VARCHAR(50),
+    tags TEXT[], -- PostgreSQL数组类型
+    
+    -- 链上数据（从Graph同步）
+    total_supply NUMERIC(30,18) DEFAULT 0,
+    current_price NUMERIC(30,18) DEFAULT 0,
+    market_cap NUMERIC(30,18) DEFAULT 0,
+    member_count INTEGER DEFAULT 0,
+    post_count INTEGER DEFAULT 0,
+    total_volume NUMERIC(30,18) DEFAULT 0,
+    
+    -- 圈子设置
+    is_public BOOLEAN DEFAULT TRUE,
+    min_token_to_join NUMERIC(30,18) DEFAULT 0,
+    allow_posting BOOLEAN DEFAULT TRUE,
+    moderation_enabled BOOLEAN DEFAULT TRUE,
+    
+    -- 链上时间戳
+    created_at_block BIGINT NOT NULL,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+    
+    CONSTRAINT valid_contract_address CHECK (contract_address ~* '^0x[a-f0-9]{40}$')
+);
+
+CREATE INDEX idx_circles_owner ON circles(owner_id);
+CREATE INDEX idx_circles_category ON circles(category);
+CREATE INDEX idx_circles_market_cap ON circles(market_cap DESC);
+CREATE INDEX idx_circles_member_count ON circles(member_count DESC);
+CREATE INDEX idx_circles_created ON circles(created_at DESC);
+
+-- GIN索引用于标签搜索和全文搜索
+CREATE INDEX idx_circles_tags ON circles USING GIN(tags);
+CREATE INDEX idx_circles_search ON circles USING GIN(
+    to_tsvector('english', name || ' ' || COALESCE(description, ''))
+);
+
+-- 用户-圈子关系表
+CREATE TABLE user_circle_relationships (
+    uc_relationship_id BIGSERIAL PRIMARY KEY,
+    user_id BIGINT NOT NULL REFERENCES users(user_id) ON DELETE CASCADE,
+    circle_id BIGINT NOT NULL REFERENCES circles(circle_id) ON DELETE CASCADE,
+    relationship_type VARCHAR(20) NOT NULL,
+    
+    -- 持仓数据（从Graph同步）
+    token_balance NUMERIC(30,18) DEFAULT 0,
+    join_price NUMERIC(30,18),
+    contribution_score NUMERIC(10,2) DEFAULT 0,
+    
+    -- 权限
+    can_post BOOLEAN DEFAULT TRUE,
+    can_moderate BOOLEAN DEFAULT FALSE,
+    can_invite BOOLEAN DEFAULT FALSE,
+    
+    -- 时间戳
+    joined_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+    last_interaction_at TIMESTAMP WITH TIME ZONE,
+    
+    CONSTRAINT unique_user_circle UNIQUE(user_id, circle_id),
+    CONSTRAINT valid_uc_relationship_type CHECK (relationship_type IN ('OWNS', 'MODERATOR', 'MEMBER'))
+);
+
+CREATE INDEX idx_uc_user ON user_circle_relationships(user_id);
+CREATE INDEX idx_uc_circle ON user_circle_relationships(circle_id);
+CREATE INDEX idx_uc_type ON user_circle_relationships(relationship_type);
+CREATE INDEX idx_uc_contribution ON user_circle_relationships(contribution_score DESC);
+CREATE INDEX idx_uc_balance ON user_circle_relationships(token_balance DESC);
+
+-- ============================================
+-- 内容相关表
+-- ============================================
+
+-- 内容主表
+CREATE TABLE posts (
+    post_id BIGSERIAL PRIMARY KEY,
+    author_id BIGINT NOT NULL REFERENCES users(user_id),
+    circle_id BIGINT REFERENCES circles(circle_id) ON DELETE CASCADE,
+    
+    -- 内容数据
+    content_ipfs_hash VARCHAR(66) NOT NULL,
+    content_type VARCHAR(20) NOT NULL,
+    title VARCHAR(255),
+    preview_text TEXT,
+    
+    -- 链上数据（从Graph同步）
+    tx_hash VARCHAR(66),
+    block_number BIGINT,
+    upvotes INTEGER DEFAULT 0,
+    downvotes INTEGER DEFAULT 0,
+    comment_count INTEGER DEFAULT 0,
+    reward_amount NUMERIC(30,18) DEFAULT 0,
+    
+    -- NFT数据
+    is_nft BOOLEAN DEFAULT FALSE,
+    nft_token_id BIGINT,
+    nft_contract_address VARCHAR(42),
+    
+    -- 状态
+    is_deleted BOOLEAN DEFAULT FALSE,
+    is_pinned BOOLEAN DEFAULT FALSE,
+    moderation_status VARCHAR(20) DEFAULT 'APPROVED',
+    
+    -- 时间戳
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+    
+    CONSTRAINT valid_content_type CHECK (content_type IN ('TEXT', 'IMAGE', 'VIDEO', 'LINK', 'NFT')),
+    CONSTRAINT valid_moderation_status CHECK (moderation_status IN ('PENDING', 'APPROVED', 'REJECTED', 'FLAGGED'))
+);
+
+CREATE INDEX idx_posts_author ON posts(author_id);
+CREATE INDEX idx_posts_circle ON posts(circle_id);
+CREATE INDEX idx_posts_created ON posts(created_at DESC);
+CREATE INDEX idx_posts_upvotes ON posts(upvotes DESC);
+CREATE INDEX idx_posts_reward ON posts(reward_amount DESC);
+CREATE INDEX idx_posts_nft ON posts(is_nft) WHERE is_nft = TRUE;
+CREATE INDEX idx_posts_moderation ON posts(moderation_status) WHERE moderation_status != 'APPROVED';
+
+-- 全文搜索索引
+CREATE INDEX idx_posts_search ON posts USING GIN(
+    to_tsvector('english', COALESCE(title, '') || ' ' || COALESCE(preview_text, ''))
+);
+
+-- 评论表
+CREATE TABLE comments (
+    comment_id BIGSERIAL PRIMARY KEY,
+    post_id BIGINT NOT NULL REFERENCES posts(post_id) ON DELETE CASCADE,
+    author_id BIGINT NOT NULL REFERENCES users(user_id),
+    parent_comment_id BIGINT REFERENCES comments(comment_id) ON DELETE CASCADE,
+    
+    content TEXT NOT NULL,
+    upvotes INTEGER DEFAULT 0,
+    is_deleted BOOLEAN DEFAULT FALSE,
+    
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE INDEX idx_comments_post ON comments(post_id, created_at);
+CREATE INDEX idx_comments_author ON comments(author_id);
+CREATE INDEX idx_comments_parent ON comments(parent_comment_id) WHERE parent_comment_id IS NOT NULL;
+
+-- ============================================
+-- 交易相关表
+-- ============================================
+
+-- 交易历史表（从Graph同步）
+CREATE TABLE trades (
+    trade_id BIGSERIAL PRIMARY KEY,
+    tx_hash VARCHAR(66) UNIQUE NOT NULL,
+    trader_id BIGINT NOT NULL REFERENCES users(user_id),
+    circle_id BIGINT NOT NULL REFERENCES circles(circle_id),
+    
+    trade_type VARCHAR(10) NOT NULL,
+    token_amount NUMERIC(30,18) NOT NULL,
+    eth_amount NUMERIC(30,18) NOT NULL,
+    price NUMERIC(30,18) NOT NULL,
+    fee NUMERIC(30,18) DEFAULT 0,
+    
+    block_number BIGINT NOT NULL,
+    timestamp TIMESTAMP WITH TIME ZONE NOT NULL,
+    
+    CONSTRAINT valid_trade_type CHECK (trade_type IN ('BUY', 'SELL'))
+);
+
+CREATE INDEX idx_trades_trader ON trades(trader_id, timestamp DESC);
+CREATE INDEX idx_trades_circle ON trades(circle_id, timestamp DESC);
+CREATE INDEX idx_trades_timestamp ON trades(timestamp DESC);
+CREATE INDEX idx_trades_block ON trades(block_number DESC);
+
+-- ============================================
+-- 通知系统表
+-- ============================================
+
+CREATE TABLE notifications (
+    notification_id BIGSERIAL PRIMARY KEY,
+    user_id BIGINT NOT NULL REFERENCES users(user_id) ON DELETE CASCADE,
+    
+    notification_type VARCHAR(50) NOT NULL,
+    title VARCHAR(255) NOT NULL,
+    content TEXT,
+    
+    -- 关联数据
+    related_user_id BIGINT REFERENCES users(user_id),
+    related_post_id BIGINT REFERENCES posts(post_id),
+    related_circle_id BIGINT REFERENCES circles(circle_id),
+    
+    -- 状态
+    is_read BOOLEAN DEFAULT FALSE,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+    
+    CONSTRAINT valid_notification_type CHECK (notification_type IN (
+        'NEW_FOLLOWER', 'NEW_COMMENT', 'POST_REWARD', 'CIRCLE_INVITE',
+        'TRADE_EXECUTED', 'GOVERNANCE_PROPOSAL', 'MENTION'
+    ))
+);
+
+CREATE INDEX idx_notifications_user_read ON notifications(user_id, is_read, created_at DESC);
+CREATE INDEX idx_notifications_type ON notifications(notification_type);
+
+-- ============================================
+-- 缓存表（用于性能优化）
+-- ============================================
+
+-- Feed缓存表
+CREATE TABLE user_feed_cache (
+    feed_id BIGSERIAL PRIMARY KEY,
+    user_id BIGINT NOT NULL REFERENCES users(user_id) ON DELETE CASCADE,
+    post_id BIGINT NOT NULL REFERENCES posts(post_id) ON DELETE CASCADE,
+    
+    relevance_score NUMERIC(10,2) DEFAULT 0,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+    
+    CONSTRAINT unique_user_post_feed UNIQUE(user_id, post_id)
+);
+
+CREATE INDEX idx_feed_user_score ON user_feed_cache(user_id, relevance_score DESC, created_at DESC);
+
+-- 热门内容缓存（每小时更新）
+CREATE TABLE trending_cache (
+    trending_id SERIAL PRIMARY KEY,
+    entity_type VARCHAR(20) NOT NULL,
+    entity_id BIGINT NOT NULL,
+    trending_score NUMERIC(10,2) NOT NULL,
+    time_window VARCHAR(20) NOT NULL, -- '1h', '24h', '7d'
+    
+    calculated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+    
+    CONSTRAINT valid_entity_type CHECK (entity_type IN ('POST', 'CIRCLE', 'USER'))
+);
+
+CREATE INDEX idx_trending_type_window ON trending_cache(entity_type, time_window, trending_score DESC);
+
+-- ============================================
+-- 私信系统表
+-- ============================================
+
+CREATE TABLE direct_messages (
+    message_id BIGSERIAL PRIMARY KEY,
+    from_user_id BIGINT NOT NULL REFERENCES users(user_id),
+    to_user_id BIGINT NOT NULL REFERENCES users(user_id),
+    
+    encrypted_content TEXT NOT NULL, -- 加密后的内容
+    encryption_key_hash VARCHAR(66), -- 用于验证
+    
+    is_read BOOLEAN DEFAULT FALSE,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+    
+    CONSTRAINT no_self_message CHECK (from_user_id != to_user_id)
+);
+
+CREATE INDEX idx_dm_from ON direct_messages(from_user_id, created_at DESC);
+CREATE INDEX idx_dm_to ON direct_messages(to_user_id, is_read, created_at DESC);
+CREATE INDEX idx_dm_conversation ON direct_messages(
+    LEAST(from_user_id, to_user_id),
+    GREATEST(from_user_id, to_user_id),
+    created_at DESC
+);
+
+-- ============================================
+-- 分析统计表
+-- ============================================
+
+-- 日活统计
+CREATE TABLE daily_active_users (
+    date DATE PRIMARY KEY,
+    active_user_count INTEGER NOT NULL,
+    new_user_count INTEGER NOT NULL,
+    total_transactions INTEGER NOT NULL,
+    total_volume NUMERIC(30,18) NOT NULL,
+    
+    calculated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+);
+
+-- 圈子统计快照
+CREATE TABLE circle_stats_snapshots (
+    snapshot_id BIGSERIAL PRIMARY KEY,
+    circle_id BIGINT NOT NULL REFERENCES circles(circle_id),
+    
+    snapshot_date DATE NOT NULL,
+    member_count INTEGER NOT NULL,
+    token_price NUMERIC(30,18) NOT NULL,
+    market_cap NUMERIC(30,18) NOT NULL,
+    daily_volume NUMERIC(30,18) NOT NULL,
+    daily_post_count INTEGER NOT NULL,
+    
+    CONSTRAINT unique_circle_date UNIQUE(circle_id, snapshot_date)
+);
+
+CREATE INDEX idx_circle_snapshots ON circle_stats_snapshots(circle_id, snapshot_date DESC);
+PostgreSQL索引设计说明：
+
+B-Tree索引（默认）：
+
+用于精确查询和范围查询
+例如：wallet_address, created_at DESC
+GIN索引（Generalized Inverted Index）：
+
+全文搜索：to_tsvector函数
+数组搜索：tags字段
+适合多值查询
+部分索引（Partial Index）：
+
+WHERE is_nft = TRUE：只索引NFT帖子
+WHERE kyc_verified = TRUE：只索引KYC用户
+减少索引大小，提升性能
+复合索引：
+
+(user_id, is_read, created_at DESC)：支持多列组合查询
+列顺序很重要：最常用的过滤条件放最前
+UNIQUE约束索引：
+
+自动创建唯一索引
+保证数据完整性
+分区策略（可选，数据量大时启用）：
+
+sql
+
+-- 按时间分区trades表（数据量大时）
+CREATE TABLE trades (
+    -- ... 字段定义
+) PARTITION BY RANGE (timestamp);
+
+CREATE TABLE trades_2025_01 PARTITION OF trades
+    FOR VALUES FROM ('2025-01-01') TO ('2025-02-01');
+
+CREATE TABLE trades_2025_02 PARTITION OF trades
+    FOR VALUES FROM ('2025-02-01') TO ('2025-03-01');
+5. 缺少的测试配置
+A. Foundry测试配置
+缺少的配置：
+
+toml
+
+# foundry.toml
+[profile.default]
+src = "contracts"
+out = "out"
+libs = ["lib"]
+solc_version = "0.8.20"
+optimizer = true
+optimizer_runs = 200
+via_ir = true
+
+# 测试配置
+[profile.default.fuzz]
+runs = 256
+max_test_rejects = 65536
+seed = '0x3e8'
+
+[profile.default.invariant]
+runs = 256
+depth = 15
+fail_on_revert = false
+
+# RPC配置
+[rpc_endpoints]
+mainnet = "${MAINNET_RPC_URL}"
+sepolia = "${SEPOLIA_RPC_URL}"
+localhost = "http://127.0.0.1:8545"
+
+# Etherscan验证
+[etherscan]
+mainnet = { key = "${ETHERSCAN_API_KEY}" }
+sepolia = { key = "${ETHERSCAN_API_KEY}" }
+
+# Gas报告
+gas_reports = ["*"]
+测试脚本：
+
+javascript
+
+// package.json
+{
+  "scripts": {
+    "test": "forge test -vvv",
+    "test:gas": "forge test --gas-report",
+    "test:coverage": "forge coverage --report lcov",
+    "test:fork": "forge test --fork-url $MAINNET_RPC_URL",
+    "deploy:sepolia": "forge script script/Deploy.s.sol --rpc-url $SEPOLIA_RPC_URL --broadcast --verify"
+  }
+}
+示例测试文件：
+
+solidity
+
+// test/CircleFactory.t.sol
+pragma solidity ^0.8.20;
+
+import "forge-std/Test.sol";
+import "../contracts/core/CircleFactory.sol";
+
+contract CircleFactoryTest is Test {
+    CircleFactory factory;
+    address user1 = address(0x1);
+    address user2 = address(0x2);
+    
+    function setUp() public {
+        factory = new CircleFactory();
+        vm.deal(user1, 100 ether);
+        vm.deal(user2, 100 ether);
+    }
+    
+    function testCreateCircle() public {
+        vm.prank(user1);
+        uint256 circleId = factory.createCircle("Test Circle", "TEST", CurveType.Linear);
+        
+        (address owner, address tokenAddress, , , bool active) = factory.circles(circleId);
+        assertEq(owner, user1);
+        assertTrue(active);
+        assertTrue(tokenAddress != address(0));
+    }
+    
+    function testFuzzBuyTokens(uint256 amount) public {
+        vm.assume(amount > 0 && amount < 1000 ether);
+        // ... fuzz testing
+    }
+    
+    function invariant_totalSupplyMatchesBalances() public {
+        // ... invariant testing
+    }
+}
+B. The Graph测试配置
+缺少的配置：
+
+yaml
+
+# subgraph.yaml
+specVersion: 0.0.5
+schema:
+  file: ./schema.graphql
+dataSources:
+  - kind: ethereum
+    name: CircleFactory
+    network: sepolia  # 测试环境
+    source:
+      address: "0x..." # 部署后填入
+      abi: CircleFactory
+      startBlock: 5000000
+    mapping:
+      kind: ethereum/events
+      apiVersion: 0.0.7
+      language: wasm/assemblyscript
+      entities:
+        - Circle
+        - User
+        - Trade
+      abis:
+        - name: CircleFactory
+          file: ./abis/CircleFactory.json
+      eventHandlers:
+        - event: CircleCreated(indexed address,indexed address,uint256,string,string)
+          handler: handleCircleCreated
+        - event: TokenTraded(indexed address,indexed address,bool,uint256,uint256)
+          handler: handleTokenTraded
+      file: ./src/mapping.ts
+测试工具：
+
+bash
+
+# 安装Graph CLI
+npm install -g @graphprotocol/graph-cli
+
+# 测试命令
+graph test
+graph build
+graph deploy --node https://api.studio.thegraph.com/deploy/ socialfi-subgraph
+单元测试示例：
+
+typescript
+
+// tests/circle-factory.test.ts
+import { describe, test, clearStore, assert } from "matchstick-as/assembly/index";
+import { handleCircleCreated } from "../src/mapping";
+
+describe("CircleFactory", () => {
+  test("Circle created event", () => {
+    // ... 测试逻辑
+  });
+});
+C. 后端API测试配置
+缺少的配置：
+
+javascript
+
+// jest.config.js
+module.exports = {
+  preset: 'ts-jest',
+  testEnvironment: 'node',
+  coverageDirectory: 'coverage',
+  collectCoverageFrom: [
+    'src/**/*.{ts,js}',
+    '!src/**/*.d.ts',
+  ],
+  testMatch: [
+    '**/__tests__/**/*.test.ts',
+    '**/?(*.)+(spec|test).ts'
+  ]
+};
+API测试示例：
+
+typescript
+
+// tests/api/users.test.ts
+import request from 'supertest';
+import app from '../../src/app';
+
+describe('User API', () => {
+  test('GET /api/users/:address', async () => {
+    const response = await request(app)
+      .get('/api/users/0x742d35cc6634c0532925a3b844bc9e7595f0beb1')
+      .expect(200);
+    
+    expect(response.body.walletAddress).toBe('0x742d35cc6634c0532925a3b844bc9e7595f0beb1');
+  });
+  
+  test('POST /api/users/profile', async () => {
+    const response = await request(app)
+      .post('/api/users/profile')
+      .send({
+        walletAddress: '0x...',
+        username: 'testuser',
+        bio: 'Test bio'
+      })
+      .expect(201);
+  });
+});
+D. 集成测试配置
+Docker Compose测试环境：
+
+yaml
+
+# docker-compose.test.yml
+version: '3.8'
+services:
+  postgres-test:
+    image: postgres:15
+    environment:
+      POSTGRES_PASSWORD: 123456
+      POSTGRES_DB: socialfi_test
+    ports:
+      - "5433:5432"
+    volumes:
+      - ./init-test-db.sql:/docker-entrypoint-initdb.d/init.sql
+  
+  graph-node-test:
+    image: graphprotocol/graph-node:latest
+    environment:
+      postgres_host: postgres-test
+      postgres_db: graph_test
+      postgres_user: postgres
+      postgres_pass: 123456
+      ethereum: 'sepolia:${SEPOLIA_RPC_URL}'
+    ports:
+      - "8001:8000"
+      - "8021:8020"
+  
+  ganache:
+    image: trufflesuite/ganache:latest
+    ports:
+      - "8545:8545"
+    command:
+      - --fork
+      - ${MAINNET_RPC_URL}
+      - --fork-block-number
+      - "18000000"
+E2E测试框架：
+
+typescript
+
+// tests/e2e/complete-flow.test.ts
+import { ethers } from 'ethers';
+
+describe('E2E: Complete User Flow', () => {
+  let provider, wallet, factory;
+  
+  beforeAll(async () => {
+    provider = new ethers.JsonRpcProvider('http://localhost:8545');
+    wallet = new ethers.Wallet(process.env.PRIVATE_KEY, provider);
+    // ... 部署合约
+  });
+  
+  test('User creates circle, buys tokens, posts content', async () => {
+    // 1. 创建圈子
+    const tx1 = await factory.createCircle("E2E Circle", "E2E", 0);
+    await tx1.wait();
+    
+    // 2. 购买代币
+    const tx2 = await circleToken.buy({ value: ethers.parseEther("1") });
+    await tx2.wait();
+    
+    // 3. 发布内容
+    const response = await fetch('http://localhost:3000/api/posts', {
+      method: 'POST',
+      body: JSON.stringify({
+        circleId: 1,
+        content: 'Test post'
+      })
+    });
+    
+    expect(response.status).toBe(201);
+  });
+});
+E. 性能测试配置
+K6负载测试：
+
+javascript
+
+// tests/load/api-load.test.js
+import http from 'k6/http';
+import { check, sleep } from 'k6';
+
+export let options = {
+  stages: [
+    { duration: '30s', target: 20 },  // 预热
+    { duration: '1m', target: 100 },  // 增加负载
+    { duration: '30s', target: 0 },   // 降低
+  ],
+  thresholds: {
+    http_req_duration: ['p(95)<500'], // 95%请求<500ms
+    http_req_failed: ['rate<0.01'],   // 错误率<1%
+  },
+};
+
+export default function () {
+  const res = http.get('http://localhost:3000/api/circles/trending');
+  check(res, {
+    'status is 200': (r) => r.status === 200,
+    'response time < 500ms': (r) => r.timings.duration < 500,
+  });
+  sleep(1);
+}
+F. 安全测试配置
+Slither静态分析：
+
+bash
+
+# 安装
+pip3 install slither-analyzer
+
+# 运行
+slither contracts/ --exclude-dependencies
+MythX安全审计：
+
+yaml
+
+# .mythx.yml
+ci:
+  analysis_mode: deep
+  target: contracts/
+  solc_version: 0.8.20
+G. 缺少的环境变量
+bash
+
+# .env.test
+# 测试环境特定配置
+NODE_ENV=test
+DATABASE_URL=postgresql://postgres:123456@localhost:5433/socialfi_test
+GRAPH_NODE_URL=http://localhost:8001
+TEST_PRIVATE_KEY=0xac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80
+
+# CI/CD配置
+CI=true
+COVERAGE_REPORT=true
+
+# 测试网络
+TEST_NETWORK=sepolia
+FORK_MAINNET=false
+
+# Mock服务
+MOCK_IPFS=true
+MOCK_WALLET=true
+6. 后端架构设计图
+整体架构图
+
+┌─────────────────────────────────────────────────────────────────┐
+│                         Frontend Layer                          │
+│  ┌──────────┐  ┌──────────┐  ┌──────────┐  ┌──────────┐       │
+│  │ Web App  │  │ Mobile   │  │  Admin   │  │  Wallet  │       │
+│  │ (Next.js)│  │   App    │  │Dashboard │  │ Connect  │       │
+│  └─────┬────┘  └─────┬────┘  └─────┬────┘  └─────┬────┘       │
+└────────┼─────────────┼─────────────┼─────────────┼─────────────┘
+         │             │             │             │
+         └─────────────┴─────────────┴─────────────┘
+                       │
+         ┌─────────────▼──────────────┐
+         │    API Gateway (Kong)      │
+         │   - Rate Limiting          │
+         │   - Authentication         │
+         │   - Load Balancing         │
+         └─────────────┬──────────────┘
+                       │
+         ┌─────────────▼──────────────┐
+         │     Backend Services        │
+         └────────────────────────────┘
+详细后端服务架构
+
+┌─────────────────────────────────────────────────────────────────────┐
+│                        Backend Services Layer                        │
+│                                                                      │
+│  ┌──────────────────┐  ┌──────────────────┐  ┌──────────────────┐ │
+│  │   API Service    │  │  Graph Indexer   │  │  Job Scheduler   │ │
+│  │   (Node.js)      │  │   Service        │  │   (Bull Queue)   │ │
+│  │                  │  │                  │  │                  │ │
+│  │ • REST API       │  │ • Event Polling  │  │ • Price Update   │ │
+│  │ • GraphQL API    │  │ • Data Sync      │  │ • Stats Calc     │ │
+│  │ • WebSocket      │  │ • Transform      │  │ • Notification   │ │
+│  └────────┬─────────┘  └────────┬─────────┘  └────────┬─────────┘ │
+│           │                     │                      │           │
+└───────────┼─────────────────────┼──────────────────────┼───────────┘
+            │                     │                      │
+            ▼                     ▼                      ▼
+┌───────────────────────────────────────────────────────────────────┐
+│                        Data Layer                                  │
+│                                                                    │
+│  ┌─────────────┐  ┌──────────────┐  ┌──────────────┐            │
+│  │ PostgreSQL  │  │  Redis Cache │  │     IPFS     │            │
+│  │             │  │              │  │              │            │
+│  │ • Users     │  │ • Sessions   │  │ • Content    │            │
+│  │ • Posts     │  │ • Feed Cache │  │ • Images     │            │
+│  │ • Analytics │  │ • Hot Data   │  │ • Metadata   │            │
+│  └──────┬──────┘  └──────┬───────┘  └──────┬───────┘            │
+│         │                │                  │                     │
+└─────────┼────────────────┼──────────────────┼─────────────────────┘
+          │                │                  │
+          │                ▼                  │
+          │    ┌───────────────────┐          │
+          │    │  Message Queue    │          │
+          │    │  (RabbitMQ/Kafka) │          │
+          │    └───────────────────┘          │
+          │                                    │
+          ▼                                    ▼
+┌─────────────────────────────────────────────────────────────────────┐
+│                      Blockchain Layer                                │
+│                                                                      │
+│  ┌──────────────┐  ┌──────────────┐  ┌──────────────┐             │
+│  │  Ethereum    │  │  The Graph   │  │   Etherscan  │             │
+│  │  RPC Nodes   │  │   Subgraph   │  │     API      │             │
+│  │              │  │              │  │              │             │
+│  │ • Infura     │  │ • Query Node │  │ • Gas Price  │             │
+│  │ • Alchemy    │  │ • Index Node │  │ • Contract   │             │
+│  │ • Public RPC │  │              │  │   Verification│             │
+│  └──────────────┘  └──────────────┘  └──────────────┘             │
+│                                                                     │
+│  ┌──────────────────────────────────────────────────────────┐     │
+│  │               Smart Contracts (Foundry)                   │     │
+│  │                                                            │     │
+│  │  CircleFactory  BondingCurve  ContentNFT  Governance     │     │
+│  └──────────────────────────────────────────────────────────┘     │
+└─────────────────────────────────────────────────────────────────────┘
+服务模块详细设计
+1. API Service (Node.js + Express/Fastify)
+stylus
+
+API Service
+├── routes/
+│   ├── users.routes.ts          # 用户相关API
+│   ├── circles.routes.ts        # 圈子相关API
+│   ├── posts.routes.ts          # 内容相关API
+│   ├── trades.routes.ts         # 交易相关API
+│   └── notifications.routes.ts  # 通知相关API
+│
+├── controllers/
+│   ├── UserController.ts
+│   ├── CircleController.ts
+│   ├── PostController.ts
+│   └── TradeController.ts
+│
+├── services/
+│   ├── Web3Service.ts           # 链上交互
+│   ├── GraphService.ts          # The Graph查询
+│   ├── IPFSService.ts           # IPFS上传下载
+│   ├── CacheService.ts          # Redis缓存
+│   └── NotificationService.ts   # 推送通知
+│
+├── middlewares/
+│   ├── auth.middleware.ts       # 签名验证
+│   ├── rateLimit.middleware.ts  # 限流
+│   └── validation.middleware.ts # 参数验证
+│
+└── utils/
+    ├── signature.ts             # 签名工具
+    ├── encryption.ts            # 加密工具
+    └── logger.ts                # 日志工具
+2. Graph Indexer Service
+reasonml
+
+Graph Indexer Service
+├── indexers/
+│   ├── CircleIndexer.ts         # 圈子事件索引
+│   ├── TradeIndexer.ts          # 交易事件索引
+│   └── ContentIndexer.ts        # 内容事件索引
+│
+├── transformers/
+│   ├── EventTransformer.ts      # 事件转换
+│   └── DataAggregator.ts        # 数据聚合
+│
+└── sync/
+    ├── BlockSync.ts             # 区块同步
+    └── EventPoller.ts           # 事件轮询
+3. Job Scheduler Service
+reasonml
+
+Job Scheduler
+├── jobs/
+│   ├── PriceUpdateJob.ts        # 定时更新价格
+│   ├── StatsCalculationJob.ts   # 统计计算
+│   ├── FeedGenerationJob.ts     # Feed生成
+│   ├── NotificationJob.ts       # 通知推送
+│   └── DataCleanupJob.ts        # 数据清理
+│
+└── workers/
+    ├── QueueWorker.ts           # 队列处理
+    └── CronWorker.ts            # 定时任务
+数据流图
+
+用户操作 → API Gateway → API Service
+                            ↓
+                   ┌────────┴────────┐
+                   ▼                 ▼
+              PostgreSQL         Web3 RPC
+                   ↑                 ↓
+                   │           Smart Contract
+                   │                 ↓
+                   │            Event Emitted
+                   │                 ↓
+                   │           The Graph
+                   │                 ↓
+                   └──── Graph Indexer Service
+                            ↓
+                      Update Cache (Redis)
+                            ↓
+                    Job Scheduler (异步)
+                            ↓
+                   Send Notification
+缓存策略
+
+Redis缓存层次:
+┌─────────────────────────────────────┐
+│ L1: Hot Data (TTL: 5min)            │
+│  • Trending Posts                   │
+│  • Active Users                     │
+│  • Real-time Prices                 │
+└─────────────────────────────────────┘
+         ↓ Cache Miss
+┌─────────────────────────────────────┐
+│ L2: Warm Data (TTL: 1hour)          │
+│  • User Profiles                    │
+│  • Circle Metadata                  │
+│  • Feed Data                        │
+└─────────────────────────────────────┘
+         ↓ Cache Miss
+┌─────────────────────────────────────┐
+│ L3: PostgreSQL                      │
+│  • All Persistent Data              │
+└─────────────────────────────────────┘
+监控与日志架构
+
+┌─────────────────────────────────────────┐
+│          Monitoring Stack               │
+│                                         │
+│  ┌──────────┐  ┌──────────┐           │
+│  │Prometheus│  │ Grafana  │           │
+│  │          │→ │Dashboard │           │
+│  └──────────┘  └──────────┘           │
+│       ↑                                │
+│  ┌────┴─────┐  ┌──────────┐           │
+│  │  Metrics │  │   Logs   │           │
+│  │Exporter  │  │(Winston) │           │
+│  └──────────┘  └─────┬────┘           │
+│                      ↓                 │
+│              ┌──────────────┐          │
+│              │ ELK Stack    │          │
+│              │ (Elasticsearch)│        │
+│              └──────────────┘          │
+└─────────────────────────────────────────┘
+总结
+这是一个完整的SocialFi产品技术方案，包含：
+
+✅ 用户数据结构：完整的PostgreSQL schema + 5条示例数据
+✅ 关系图谱：Graph三元组设计 + 示例数据
+✅ 功能列表：10大模块，50+功能点
+✅ 技术栈：Foundry + The Graph + PostgreSQL
+✅ 测试配置：单元测试、集成测试、E2E测试、性能测试
+✅ 架构设计：清晰的分层架构图
+
+关键设计理由：
+
+PostgreSQL索引：根据查询频率和数据特征设计，包含B-Tree、GIN、部分索引
+The Graph索引：实体关系清晰，支持复杂GraphQL查询，减轻RPC压力
+缓存策略：三层缓存，平衡性能与一致性
+异步处理：使用消息队列处理耗时任务，提升响应速度
+可扩展性：微服务架构，易于横向扩展
+
+
+
+配置:
+
+#Dune API连接
+api_key = "alHompuD8oHFz6BpS8b23cLB96lMVuyN"
+
+
+
+# ===========================================
+# 以太坊DApp环境配置 (优化版)
+# ===========================================
+
+# 网络RPC配置 - 使用测试中最快的RPC
+INFURA_PROJECT_ID=2df62bfc4e994527bb88ff684aa8fe65
+
+# 主网RPC (按速度排序)
+MAINNET_RPC_URL=https://eth.llamarpc.com
+BACKUP_MAINNET_RPC=https://ethereum.publicnode.com
+BACKUP_MAINNET_RPC2=https://ethereum-rpc.publicnode.com
+BACKUP_MAINNET_RPC3=https://mainnet.infura.io/v3/2df62bfc4e994527bb88ff684aa8fe65
+
+# 测试网RPC (按速度排序)
+SEPOLIA_RPC_URL=https://sepolia.infura.io/v3/2df62bfc4e994527bb88ff684aa8fe65
+BACKUP_SEPOLIA_RPC=https://eth-sepolia.public.blastapi.io
+BACKUP_SEPOLIA_RPC2=https://sepolia.gateway.tenderly.co
+BACKUP_SEPOLIA_RPC3=https://rpc.sepolia.dev
+
+# 钱包配置
+PRIVATE_KEY=2da0a38f9d1945b1685a3ca97adf2ae423035d45275d374e388cc20e24df4e40
+
+metamusk_ETH_key=0x197131c5e0400602fFe47009D38d12f815411149
+Ethereum 0.05 SEPOLIAETH $188.95
+
+领取地址:https://cloud.google.com/application/web3/faucet/ethereum/sepolia
+
+#SOLANA
+metamusk_solana_key=4X5HZ3mMRLPGcNhuWtLrGNNv8QAqWPsxtXAt779QCUJL
+
+# 应用配置 - 使用主网（因为主网RPC更稳定）
+NODE_ENV=development
+NETWORK=mainnet
+TIMEOUT_MS=15000
+
+# Infura配置
+INFURA_API_SECRET=WXHOW20DUFy/9VA6Kh/ABHAssDvEjR8YZ+P2yGETWPwtEHxviD3tqQ
+
+
+#火山模型-free
+api_url: str = "https://ark.cn-beijing.volces.com/api/v3/",
+api_key: str = "e8d02588-9dc4-4927-8f2c-79129ccf2dca",
+model: str = "deepseek-v3-250324"
+
+本地mysql:
+root
+无密码
+
+
+#ETHERSCAN
+ETHERSCAN_API_KEY = "MM4DWVEE61J5WY6GTW33HVNASH8DRZRRQC"
+ETHERSCAN_APP_NAME=aitachi01
+ETHERSCAN_ADDED_ON=2025-10-19
+ETHERSCAN_DASHBOARD_URL=https://etherscan.io/apidashboard
+
+#gitee
+username: 18116011230
+password: Ll662827!@#
+
+private_token:40641076f604b094f7db953b8dd039d7

@@ -1,0 +1,201 @@
+Warning: This is a nightly build of Foundry. It is recommended to use the latest stable version. To mute this warning set `FOUNDRY_DISABLE_NIGHTLY_WARNING` in your environment. 
+
+No files changed, compilation skipped
+
+Ran 9 tests for test/CircleFactory.t.sol:CircleFactoryTest
+[FAIL: CurveInitialized != expected CircleCreated] testCreateCircle() (gas: 2193991)
+Traces:
+  [2193991] CircleFactoryTest::testCreateCircle()
+    ├─ [0] VM::startPrank(user1: [0x29E3b139f4393aDda86303fcdAa35F60Bb7092bF])
+    │   └─ ← [Return]
+    ├─ [2778] CircleFactory::circleCreationFee() [staticcall]
+    │   └─ ← [Return] 10000000000000000 [1e16]
+    ├─ [0] VM::expectEmit(true, true, true, false)
+    │   └─ ← [Return]
+    ├─ emit CircleCreated(circleId: 1, owner: user1: [0x29E3b139f4393aDda86303fcdAa35F60Bb7092bF], tokenAddress: 0x0000000000000000000000000000000000000000, name: "Test Circle", symbol: "TEST", curveType: 0)
+    ├─ [2168805] CircleFactory::createCircle{value: 10000000000000000}("Test Circle", "TEST", "A test circle", 0, 1000000000000000 [1e15], 1000000000000000 [1e15], 0, 0)
+    │   ├─ [1791732] → new CircleToken@0x037eDa3aDB1198021A9b2e88C22B464fD38db3f3
+    │   │   ├─ emit OwnershipTransferred(previousOwner: 0x0000000000000000000000000000000000000000, newOwner: CircleFactory: [0x5615dEB798BB3E4dFa0139dFa1b3D433Cc23b72f])
+    │   │   ├─ emit OwnershipTransferred(previousOwner: CircleFactory: [0x5615dEB798BB3E4dFa0139dFa1b3D433Cc23b72f], newOwner: CircleFactory: [0x5615dEB798BB3E4dFa0139dFa1b3D433Cc23b72f])
+    │   │   ├─ emit Transfer(from: 0x0000000000000000000000000000000000000000, to: user1: [0x29E3b139f4393aDda86303fcdAa35F60Bb7092bF], value: 1000000000000000000000 [1e21])
+    │   │   └─ ← [Return] 7253 bytes of code
+    │   ├─ [57547] BondingCurve::initializeCurve(CircleToken: [0x037eDa3aDB1198021A9b2e88C22B464fD38db3f3], 0, 1000000000000000 [1e15], 1000000000000000 [1e15], 0, 0)
+    │   │   ├─ emit CurveInitialized(token: CircleToken: [0x037eDa3aDB1198021A9b2e88C22B464fD38db3f3], curveType: 0)
+    │   │   └─ ← [Return]
+    │   ├─ [1045] CircleToken::updateMetadata("A test circle", "")
+    │   │   └─ ← [Revert] Only circle owner can call
+    │   └─ ← [Revert] Only circle owner can call
+    └─ ← [Revert] CurveInitialized != expected CircleCreated
+
+Backtrace:
+  at CircleToken.updateMetadata
+  at CircleFactory.createCircle
+  at CircleFactoryTest.testCreateCircle
+
+[PASS] testCreateCircleInsufficientFee() (gas: 28384)
+[FAIL: Only circle owner can call] testCreateMultipleCircles() (gas: 2189457)
+Traces:
+  [2189457] CircleFactoryTest::testCreateMultipleCircles()
+    ├─ [0] VM::startPrank(user1: [0x29E3b139f4393aDda86303fcdAa35F60Bb7092bF])
+    │   └─ ← [Return]
+    ├─ [2778] CircleFactory::circleCreationFee() [staticcall]
+    │   └─ ← [Return] 10000000000000000 [1e16]
+    ├─ [2168805] CircleFactory::createCircle{value: 10000000000000000}("Circle 1", "CRC1", "First circle", 0, 1000000000000000 [1e15], 1000000000000000 [1e15], 0, 0)
+    │   ├─ [1791732] → new CircleToken@0x037eDa3aDB1198021A9b2e88C22B464fD38db3f3
+    │   │   ├─ emit OwnershipTransferred(previousOwner: 0x0000000000000000000000000000000000000000, newOwner: CircleFactory: [0x5615dEB798BB3E4dFa0139dFa1b3D433Cc23b72f])
+    │   │   ├─ emit OwnershipTransferred(previousOwner: CircleFactory: [0x5615dEB798BB3E4dFa0139dFa1b3D433Cc23b72f], newOwner: CircleFactory: [0x5615dEB798BB3E4dFa0139dFa1b3D433Cc23b72f])
+    │   │   ├─ emit Transfer(from: 0x0000000000000000000000000000000000000000, to: user1: [0x29E3b139f4393aDda86303fcdAa35F60Bb7092bF], value: 1000000000000000000000 [1e21])
+    │   │   └─ ← [Return] 7253 bytes of code
+    │   ├─ [57547] BondingCurve::initializeCurve(CircleToken: [0x037eDa3aDB1198021A9b2e88C22B464fD38db3f3], 0, 1000000000000000 [1e15], 1000000000000000 [1e15], 0, 0)
+    │   │   ├─ emit CurveInitialized(token: CircleToken: [0x037eDa3aDB1198021A9b2e88C22B464fD38db3f3], curveType: 0)
+    │   │   └─ ← [Return]
+    │   ├─ [1045] CircleToken::updateMetadata("First circle", "")
+    │   │   └─ ← [Revert] Only circle owner can call
+    │   └─ ← [Revert] Only circle owner can call
+    └─ ← [Revert] Only circle owner can call
+
+Backtrace:
+  at CircleToken.updateMetadata
+  at CircleFactory.createCircle
+  at CircleFactoryTest.testCreateMultipleCircles
+
+[FAIL: Only circle owner can call] testDeactivateCircle() (gas: 2189460)
+Traces:
+  [2189460] CircleFactoryTest::testDeactivateCircle()
+    ├─ [0] VM::startPrank(user1: [0x29E3b139f4393aDda86303fcdAa35F60Bb7092bF])
+    │   └─ ← [Return]
+    ├─ [2778] CircleFactory::circleCreationFee() [staticcall]
+    │   └─ ← [Return] 10000000000000000 [1e16]
+    ├─ [2168805] CircleFactory::createCircle{value: 10000000000000000}("Test Circle", "TEST", "A test circle", 0, 1000000000000000 [1e15], 1000000000000000 [1e15], 0, 0)
+    │   ├─ [1791732] → new CircleToken@0x037eDa3aDB1198021A9b2e88C22B464fD38db3f3
+    │   │   ├─ emit OwnershipTransferred(previousOwner: 0x0000000000000000000000000000000000000000, newOwner: CircleFactory: [0x5615dEB798BB3E4dFa0139dFa1b3D433Cc23b72f])
+    │   │   ├─ emit OwnershipTransferred(previousOwner: CircleFactory: [0x5615dEB798BB3E4dFa0139dFa1b3D433Cc23b72f], newOwner: CircleFactory: [0x5615dEB798BB3E4dFa0139dFa1b3D433Cc23b72f])
+    │   │   ├─ emit Transfer(from: 0x0000000000000000000000000000000000000000, to: user1: [0x29E3b139f4393aDda86303fcdAa35F60Bb7092bF], value: 1000000000000000000000 [1e21])
+    │   │   └─ ← [Return] 7253 bytes of code
+    │   ├─ [57547] BondingCurve::initializeCurve(CircleToken: [0x037eDa3aDB1198021A9b2e88C22B464fD38db3f3], 0, 1000000000000000 [1e15], 1000000000000000 [1e15], 0, 0)
+    │   │   ├─ emit CurveInitialized(token: CircleToken: [0x037eDa3aDB1198021A9b2e88C22B464fD38db3f3], curveType: 0)
+    │   │   └─ ← [Return]
+    │   ├─ [1045] CircleToken::updateMetadata("A test circle", "")
+    │   │   └─ ← [Revert] Only circle owner can call
+    │   └─ ← [Revert] Only circle owner can call
+    └─ ← [Revert] Only circle owner can call
+
+Backtrace:
+  at CircleToken.updateMetadata
+  at CircleFactory.createCircle
+  at CircleFactoryTest.testDeactivateCircle
+
+[PASS] testDeployment() (gas: 16281)
+[FAIL: Only circle owner can call] testGetStatistics() (gas: 2192316)
+Traces:
+  [2192316] CircleFactoryTest::testGetStatistics()
+    ├─ [0] VM::startPrank(user1: [0x29E3b139f4393aDda86303fcdAa35F60Bb7092bF])
+    │   └─ ← [Return]
+    ├─ [2778] CircleFactory::circleCreationFee() [staticcall]
+    │   └─ ← [Return] 10000000000000000 [1e16]
+    ├─ [0] VM::toString(0) [staticcall]
+    │   └─ ← [Return] "0"
+    ├─ [0] VM::toString(0) [staticcall]
+    │   └─ ← [Return] "0"
+    ├─ [2168805] CircleFactory::createCircle{value: 10000000000000000}("Circle 0", "CRC0", "Test circle", 0, 1000000000000000 [1e15], 1000000000000000 [1e15], 0, 0)
+    │   ├─ [1791732] → new CircleToken@0x037eDa3aDB1198021A9b2e88C22B464fD38db3f3
+    │   │   ├─ emit OwnershipTransferred(previousOwner: 0x0000000000000000000000000000000000000000, newOwner: CircleFactory: [0x5615dEB798BB3E4dFa0139dFa1b3D433Cc23b72f])
+    │   │   ├─ emit OwnershipTransferred(previousOwner: CircleFactory: [0x5615dEB798BB3E4dFa0139dFa1b3D433Cc23b72f], newOwner: CircleFactory: [0x5615dEB798BB3E4dFa0139dFa1b3D433Cc23b72f])
+    │   │   ├─ emit Transfer(from: 0x0000000000000000000000000000000000000000, to: user1: [0x29E3b139f4393aDda86303fcdAa35F60Bb7092bF], value: 1000000000000000000000 [1e21])
+    │   │   └─ ← [Return] 7253 bytes of code
+    │   ├─ [57547] BondingCurve::initializeCurve(CircleToken: [0x037eDa3aDB1198021A9b2e88C22B464fD38db3f3], 0, 1000000000000000 [1e15], 1000000000000000 [1e15], 0, 0)
+    │   │   ├─ emit CurveInitialized(token: CircleToken: [0x037eDa3aDB1198021A9b2e88C22B464fD38db3f3], curveType: 0)
+    │   │   └─ ← [Return]
+    │   ├─ [1045] CircleToken::updateMetadata("Test circle", "")
+    │   │   └─ ← [Revert] Only circle owner can call
+    │   └─ ← [Revert] Only circle owner can call
+    └─ ← [Revert] Only circle owner can call
+
+Backtrace:
+  at CircleToken.updateMetadata
+  at CircleFactory.createCircle
+  at CircleFactoryTest.testGetStatistics
+
+[FAIL: Only circle owner can call] testPauseAndUnpause() (gas: 2206422)
+Traces:
+  [2206422] CircleFactoryTest::testPauseAndUnpause()
+    ├─ [6737] CircleFactory::pause()
+    │   ├─ emit Paused(account: CircleFactoryTest: [0x7FA9385bE102ac3EAc297483Dd6233D62b3e1496])
+    │   └─ ← [Return]
+    ├─ [0] VM::startPrank(user1: [0x29E3b139f4393aDda86303fcdAa35F60Bb7092bF])
+    │   └─ ← [Return]
+    ├─ [2778] CircleFactory::circleCreationFee() [staticcall]
+    │   └─ ← [Return] 10000000000000000 [1e16]
+    ├─ [0] VM::expectRevert(custom error 0xf28dceb3:  Pausable: paused)
+    │   └─ ← [Return]
+    ├─ [915] CircleFactory::createCircle{value: 10000000000000000}("Test Circle", "TEST", "A test circle", 0, 1000000000000000 [1e15], 1000000000000000 [1e15], 0, 0)
+    │   └─ ← [Revert] Pausable: paused
+    ├─ [0] VM::stopPrank()
+    │   └─ ← [Return]
+    ├─ [1672] CircleFactory::unpause()
+    │   ├─ emit Unpaused(account: CircleFactoryTest: [0x7FA9385bE102ac3EAc297483Dd6233D62b3e1496])
+    │   └─ ← [Return]
+    ├─ [0] VM::startPrank(user1: [0x29E3b139f4393aDda86303fcdAa35F60Bb7092bF])
+    │   └─ ← [Return]
+    ├─ [2166805] CircleFactory::createCircle{value: 10000000000000000}("Test Circle", "TEST", "A test circle", 0, 1000000000000000 [1e15], 1000000000000000 [1e15], 0, 0)
+    │   ├─ [1791732] → new CircleToken@0x037eDa3aDB1198021A9b2e88C22B464fD38db3f3
+    │   │   ├─ emit OwnershipTransferred(previousOwner: 0x0000000000000000000000000000000000000000, newOwner: CircleFactory: [0x5615dEB798BB3E4dFa0139dFa1b3D433Cc23b72f])
+    │   │   ├─ emit OwnershipTransferred(previousOwner: CircleFactory: [0x5615dEB798BB3E4dFa0139dFa1b3D433Cc23b72f], newOwner: CircleFactory: [0x5615dEB798BB3E4dFa0139dFa1b3D433Cc23b72f])
+    │   │   ├─ emit Transfer(from: 0x0000000000000000000000000000000000000000, to: user1: [0x29E3b139f4393aDda86303fcdAa35F60Bb7092bF], value: 1000000000000000000000 [1e21])
+    │   │   └─ ← [Return] 7253 bytes of code
+    │   ├─ [57547] BondingCurve::initializeCurve(CircleToken: [0x037eDa3aDB1198021A9b2e88C22B464fD38db3f3], 0, 1000000000000000 [1e15], 1000000000000000 [1e15], 0, 0)
+    │   │   ├─ emit CurveInitialized(token: CircleToken: [0x037eDa3aDB1198021A9b2e88C22B464fD38db3f3], curveType: 0)
+    │   │   └─ ← [Return]
+    │   ├─ [1045] CircleToken::updateMetadata("A test circle", "")
+    │   │   └─ ← [Revert] Only circle owner can call
+    │   └─ ← [Revert] Only circle owner can call
+    └─ ← [Revert] Only circle owner can call
+
+Backtrace:
+  at CircleToken.updateMetadata
+  at CircleFactory.createCircle
+  at CircleFactoryTest.testPauseAndUnpause
+
+[FAIL: Only circle owner can call] testTransferCircleOwnership() (gas: 2189215)
+Traces:
+  [2189215] CircleFactoryTest::testTransferCircleOwnership()
+    ├─ [0] VM::startPrank(user1: [0x29E3b139f4393aDda86303fcdAa35F60Bb7092bF])
+    │   └─ ← [Return]
+    ├─ [2778] CircleFactory::circleCreationFee() [staticcall]
+    │   └─ ← [Return] 10000000000000000 [1e16]
+    ├─ [2168805] CircleFactory::createCircle{value: 10000000000000000}("Test Circle", "TEST", "A test circle", 0, 1000000000000000 [1e15], 1000000000000000 [1e15], 0, 0)
+    │   ├─ [1791732] → new CircleToken@0x037eDa3aDB1198021A9b2e88C22B464fD38db3f3
+    │   │   ├─ emit OwnershipTransferred(previousOwner: 0x0000000000000000000000000000000000000000, newOwner: CircleFactory: [0x5615dEB798BB3E4dFa0139dFa1b3D433Cc23b72f])
+    │   │   ├─ emit OwnershipTransferred(previousOwner: CircleFactory: [0x5615dEB798BB3E4dFa0139dFa1b3D433Cc23b72f], newOwner: CircleFactory: [0x5615dEB798BB3E4dFa0139dFa1b3D433Cc23b72f])
+    │   │   ├─ emit Transfer(from: 0x0000000000000000000000000000000000000000, to: user1: [0x29E3b139f4393aDda86303fcdAa35F60Bb7092bF], value: 1000000000000000000000 [1e21])
+    │   │   └─ ← [Return] 7253 bytes of code
+    │   ├─ [57547] BondingCurve::initializeCurve(CircleToken: [0x037eDa3aDB1198021A9b2e88C22B464fD38db3f3], 0, 1000000000000000 [1e15], 1000000000000000 [1e15], 0, 0)
+    │   │   ├─ emit CurveInitialized(token: CircleToken: [0x037eDa3aDB1198021A9b2e88C22B464fD38db3f3], curveType: 0)
+    │   │   └─ ← [Return]
+    │   ├─ [1045] CircleToken::updateMetadata("A test circle", "")
+    │   │   └─ ← [Revert] Only circle owner can call
+    │   └─ ← [Revert] Only circle owner can call
+    └─ ← [Revert] Only circle owner can call
+
+Backtrace:
+  at CircleToken.updateMetadata
+  at CircleFactory.createCircle
+  at CircleFactoryTest.testTransferCircleOwnership
+
+[PASS] testUpdateCircleCreationFee() (gas: 15338)
+Suite result: FAILED. 3 passed; 6 failed; 0 skipped; finished in 697.72ms (758.53ms CPU time)
+
+Ran 1 test suite in 1.17s (697.72ms CPU time): 3 tests passed, 6 failed, 0 skipped (9 total tests)
+
+Failing tests:
+Encountered 6 failing tests in test/CircleFactory.t.sol:CircleFactoryTest
+[FAIL: CurveInitialized != expected CircleCreated] testCreateCircle() (gas: 2193991)
+[FAIL: Only circle owner can call] testCreateMultipleCircles() (gas: 2189457)
+[FAIL: Only circle owner can call] testDeactivateCircle() (gas: 2189460)
+[FAIL: Only circle owner can call] testGetStatistics() (gas: 2192316)
+[FAIL: Only circle owner can call] testPauseAndUnpause() (gas: 2206422)
+[FAIL: Only circle owner can call] testTransferCircleOwnership() (gas: 2189215)
+
+Encountered a total of 6 failing tests, 3 tests succeeded
+
+Tip: Run `forge test --rerun` to retry only the 6 failed tests

@@ -1,0 +1,55 @@
+Warning: This is a nightly build of Foundry. It is recommended to use the latest stable version. To mute this warning set `FOUNDRY_DISABLE_NIGHTLY_WARNING` in your environment. 
+
+No files changed, compilation skipped
+
+Ran 9 tests for test/CircleFactory.t.sol:CircleFactoryTest
+[FAIL: CircleCreated param mismatch at tokenAddress: expected=0x0000000000000000000000000000000000000000, got=0x037eDa3aDB1198021A9b2e88C22B464fD38db3f3] testCreateCircle() (gas: 2283478)
+Traces:
+  [2283478] CircleFactoryTest::testCreateCircle()
+    ├─ [0] VM::startPrank(user1: [0x29E3b139f4393aDda86303fcdAa35F60Bb7092bF])
+    │   └─ ← [Return]
+    ├─ [2778] CircleFactory::circleCreationFee() [staticcall]
+    │   └─ ← [Return] 10000000000000000 [1e16]
+    ├─ [0] VM::expectEmit(true, true, true, false)
+    │   └─ ← [Return]
+    ├─ emit CircleCreated(circleId: 1, owner: user1: [0x29E3b139f4393aDda86303fcdAa35F60Bb7092bF], tokenAddress: 0x0000000000000000000000000000000000000000, name: "Test Circle", symbol: "TEST", curveType: 0)
+    ├─ [2258283] CircleFactory::createCircle{value: 10000000000000000}("Test Circle", "TEST", "A test circle", 0, 1000000000000000 [1e15], 1000000000000000 [1e15], 0, 0)
+    │   ├─ [1815160] → new CircleToken@0x037eDa3aDB1198021A9b2e88C22B464fD38db3f3
+    │   │   ├─ emit OwnershipTransferred(previousOwner: 0x0000000000000000000000000000000000000000, newOwner: CircleFactory: [0x5615dEB798BB3E4dFa0139dFa1b3D433Cc23b72f])
+    │   │   ├─ emit OwnershipTransferred(previousOwner: CircleFactory: [0x5615dEB798BB3E4dFa0139dFa1b3D433Cc23b72f], newOwner: CircleFactory: [0x5615dEB798BB3E4dFa0139dFa1b3D433Cc23b72f])
+    │   │   ├─ emit Transfer(from: 0x0000000000000000000000000000000000000000, to: user1: [0x29E3b139f4393aDda86303fcdAa35F60Bb7092bF], value: 1000000000000000000000 [1e21])
+    │   │   └─ ← [Return] 7370 bytes of code
+    │   ├─ [57547] BondingCurve::initializeCurve(CircleToken: [0x037eDa3aDB1198021A9b2e88C22B464fD38db3f3], 0, 1000000000000000 [1e15], 1000000000000000 [1e15], 0, 0)
+    │   │   ├─ emit CurveInitialized(token: CircleToken: [0x037eDa3aDB1198021A9b2e88C22B464fD38db3f3], curveType: 0)
+    │   │   └─ ← [Return]
+    │   ├─ [28321] CircleToken::updateMetadata("A test circle", "")
+    │   │   ├─ emit MetadataUpdated(description: "A test circle", image: "")
+    │   │   └─ ← [Return]
+    │   ├─ [0] treasury::fallback{value: 10000000000000000}()
+    │   │   └─ ← [Stop]
+    │   ├─ emit CircleCreated(circleId: 1, owner: user1: [0x29E3b139f4393aDda86303fcdAa35F60Bb7092bF], tokenAddress: CircleToken: [0x037eDa3aDB1198021A9b2e88C22B464fD38db3f3], name: "Test Circle", symbol: "TEST", curveType: 0)
+    │   └─ ← [Return] 1
+    └─ ← [Revert] CircleCreated param mismatch at tokenAddress: expected=0x0000000000000000000000000000000000000000, got=0x037eDa3aDB1198021A9b2e88C22B464fD38db3f3
+
+Backtrace:
+  at CircleFactoryTest.testCreateCircle
+
+[PASS] testCreateCircleInsufficientFee() (gas: 28384)
+[PASS] testCreateMultipleCircles() (gas: 4479822)
+[PASS] testDeactivateCircle() (gas: 2291562)
+[PASS] testDeployment() (gas: 16281)
+[PASS] testGetStatistics() (gas: 6656494)
+[PASS] testPauseAndUnpause() (gas: 2290896)
+[PASS] testTransferCircleOwnership() (gas: 2298312)
+[PASS] testUpdateCircleCreationFee() (gas: 15338)
+Suite result: FAILED. 8 passed; 1 failed; 0 skipped; finished in 66.86ms (89.25ms CPU time)
+
+Ran 1 test suite in 128.70ms (66.86ms CPU time): 8 tests passed, 1 failed, 0 skipped (9 total tests)
+
+Failing tests:
+Encountered 1 failing test in test/CircleFactory.t.sol:CircleFactoryTest
+[FAIL: CircleCreated param mismatch at tokenAddress: expected=0x0000000000000000000000000000000000000000, got=0x037eDa3aDB1198021A9b2e88C22B464fD38db3f3] testCreateCircle() (gas: 2283478)
+
+Encountered a total of 1 failing tests, 8 tests succeeded
+
+Tip: Run `forge test --rerun` to retry only the 1 failed test

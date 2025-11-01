@@ -1,0 +1,18 @@
+Warning: This is a nightly build of Foundry. It is recommended to use the latest stable version. To mute this warning set `FOUNDRY_DISABLE_NIGHTLY_WARNING` in your environment. 
+
+Start verifying contract `0xa734F3B212131faa6DD674CBDB00381d5407cB14` deployed on sepolia
+Constructor args: 0x000000000000000000000000197131c5e0400602ffe47009d38d12f815411149
+
+Submitting verification for [contracts/core/CircleFactory.sol:CircleFactory] 0xa734F3B212131faa6DD674CBDB00381d5407cB14.
+Submitted contract for verification:
+	Response: `OK`
+	GUID: `zv9pywrzhfknx56fpjvjd1vjpceabpvyaukac6y1kdwjhqrzwc`
+	URL: https://sepolia.etherscan.io/address/0xa734f3b212131faa6dd674cbdb00381d5407cb14
+Contract verification status:
+Response: `NOTOK`
+Details: `Pending in queue`
+Warning: Verification is still pending...; waiting 15 seconds before trying again (7 tries remaining)
+Contract verification status:
+Response: `OK`
+Details: `Pass - Verified`
+Contract successfully verified

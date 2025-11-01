@@ -1,0 +1,31 @@
+Warning: This is a nightly build of Foundry. It is recommended to use the latest stable version. To mute this warning set `FOUNDRY_DISABLE_NIGHTLY_WARNING` in your environment. 
+
+Compiling 1 files with Solc 0.8.20
+Solc 0.8.20 finished in 102.26s
+Compiler run successful with warnings:
+Warning (2072): Unused local variable.
+   --> contracts/core/BondingCurve.sol:193:9:
+    |
+193 |         CurveParams memory params = curveParameters[tokenAddress];
+    |         ^^^^^^^^^^^^^^^^^^^^^^^^^
+
+Warning (2018): Function state mutability can be restricted to pure
+   --> contracts/core/CircleToken.sol:228:5:
+    |
+228 |     function getCurrentPrice() external view returns (uint256) {
+    |     ^ (Relevant source part starts here and spans across multiple lines).
+
+
+Ran 9 tests for test/CircleFactory.t.sol:CircleFactoryTest
+[PASS] testCreateCircle() (gas: 2287249)
+[PASS] testCreateCircleInsufficientFee() (gas: 28369)
+[PASS] testCreateMultipleCircles() (gas: 4479822)
+[PASS] testDeactivateCircle() (gas: 2291547)
+[PASS] testDeployment() (gas: 16281)
+[PASS] testGetStatistics() (gas: 6656494)
+[PASS] testPauseAndUnpause() (gas: 2290866)
+[PASS] testTransferCircleOwnership() (gas: 2298297)
+[PASS] testUpdateCircleCreationFee() (gas: 15338)
+Suite result: ok. 9 passed; 0 failed; 0 skipped; finished in 8.31ms (36.86ms CPU time)
+
+Ran 1 test suite in 54.96ms (8.31ms CPU time): 9 tests passed, 0 failed, 0 skipped (9 total tests)

@@ -1,0 +1,53 @@
+Warning: This is a nightly build of Foundry. It is recommended to use the latest stable version. To mute this warning set `FOUNDRY_DISABLE_NIGHTLY_WARNING` in your environment. 
+
+Warning: `--ir-minimum` enables `viaIR` with minimum optimization, which can result in inaccurate source mappings.
+Only use this flag as a workaround if you are experiencing "stack too deep" errors.
+Note that `viaIR` is production ready since Solidity 0.8.13 and above.
+See more: https://github.com/foundry-rs/foundry/issues/3357
+Compiling 31 files with Solc 0.8.20
+Solc 0.8.20 finished in 22.01s
+Compiler run successful with warnings:
+Warning (2072): Unused local variable.
+   --> contracts/core/BondingCurve.sol:193:9:
+    |
+193 |         CurveParams memory params = curveParameters[tokenAddress];
+    |         ^^^^^^^^^^^^^^^^^^^^^^^^^
+
+Warning (2018): Function state mutability can be restricted to pure
+   --> contracts/core/CircleToken.sol:228:5:
+    |
+228 |     function getCurrentPrice() external view returns (uint256) {
+    |     ^ (Relevant source part starts here and spans across multiple lines).
+
+Analysing contracts...
+Running tests...
+
+Ran 9 tests for test/CircleFactory.t.sol:CircleFactoryTest
+[PASS] testCreateCircle() (gas: 3704863)
+[PASS] testCreateCircleInsufficientFee() (gas: 34681)
+[PASS] testCreateMultipleCircles() (gas: 7300754)
+[PASS] testDeactivateCircle() (gas: 3713892)
+[PASS] testDeployment() (gas: 20394)
+[PASS] testGetStatistics() (gas: 10892650)
+[PASS] testPauseAndUnpause() (gas: 3708570)
+[PASS] testTransferCircleOwnership() (gas: 3723203)
+[PASS] testUpdateCircleCreationFee() (gas: 18775)
+Suite result: ok. 9 passed; 0 failed; 0 skipped; finished in 22.34ms (72.90ms CPU time)
+
+Ran 1 test suite in 24.68ms (22.34ms CPU time): 9 tests passed, 0 failed, 0 skipped (9 total tests)
+
+╭------------------------------------------+-----------------+-----------------+---------------+----------------╮
+| File                                     | % Lines         | % Statements    | % Branches    | % Funcs        |
++===============================================================================================================+
+| contracts/core/BondingCurve.sol          | 9.73% (11/113)  | 6.15% (8/130)   | 0.00% (0/44)  | 25.00% (3/12)  |
+|------------------------------------------+-----------------+-----------------+---------------+----------------|
+| contracts/core/CircleFactory.sol         | 68.13% (62/91)  | 63.44% (59/93)  | 14.63% (6/41) | 71.43% (10/14) |
+|------------------------------------------+-----------------+-----------------+---------------+----------------|
+| contracts/core/CircleToken.sol           | 27.69% (18/65)  | 27.27% (15/55)  | 6.67% (2/30)  | 17.65% (3/17)  |
+|------------------------------------------+-----------------+-----------------+---------------+----------------|
+| contracts/libraries/BondingCurveMath.sol | 0.00% (0/48)    | 0.00% (0/64)    | 0.00% (0/7)   | 0.00% (0/9)    |
+|------------------------------------------+-----------------+-----------------+---------------+----------------|
+| script/Deploy.s.sol                      | 0.00% (0/37)    | 0.00% (0/43)    | 0.00% (0/1)   | 0.00% (0/1)    |
+|------------------------------------------+-----------------+-----------------+---------------+----------------|
+| Total                                    | 25.71% (91/354) | 21.30% (82/385) | 6.50% (8/123) | 30.19% (16/53) |
+╰------------------------------------------+-----------------+-----------------+---------------+----------------╯

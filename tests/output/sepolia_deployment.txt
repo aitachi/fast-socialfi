@@ -1,0 +1,55 @@
+Warning: This is a nightly build of Foundry. It is recommended to use the latest stable version. To mute this warning set `FOUNDRY_DISABLE_NIGHTLY_WARNING` in your environment. 
+
+No files changed, compilation skipped
+Script ran successfully.
+
+== Logs ==
+  Deploying contracts with deployer: 0x197131c5e0400602fFe47009D38d12f815411149
+  Platform Treasury: 0x197131c5e0400602fFe47009D38d12f815411149
+  CircleFactory deployed at: 0xa734F3B212131faa6DD674CBDB00381d5407cB14
+  BondingCurve deployed at: 0x7b2AAFBb3c2f54466Af20a815D9DB6BD346da98D
+  
+Creating test circle...
+  
+Circle Details:
+    Owner: 0x197131c5e0400602fFe47009D38d12f815411149
+    Token: 0x913C42E20e482D146711532D922c9c2599c3Bf16
+    Bonding Curve: 0x7b2AAFBb3c2f54466Af20a815D9DB6BD346da98D
+    Name: Web3 Builders
+    Symbol: W3B
+    Active: true
+  
+=== Deployment Summary ===
+  CircleFactory: 0xa734F3B212131faa6DD674CBDB00381d5407cB14
+  BondingCurve: 0x7b2AAFBb3c2f54466Af20a815D9DB6BD346da98D
+  Platform Treasury: 0x197131c5e0400602fFe47009D38d12f815411149
+  ========================
+
+  Add these to your .env file:
+  FACTORY_ADDRESS=0xa734F3B212131faa6DD674CBDB00381d5407cB14
+  BONDING_CURVE_ADDRESS=0x7b2AAFBb3c2f54466Af20a815D9DB6BD346da98D
+  PLATFORM_TREASURY=0x197131c5e0400602fFe47009D38d12f815411149
+
+## Setting up 1 EVM.
+
+==========================
+
+Chain 11155111
+
+Estimated gas price: 0.001000018 gwei
+
+Estimated total gas used for script: 10051982
+
+Estimated amount required: 0.000010052162935676 ETH
+
+==========================
+
+
+==========================
+
+ONCHAIN EXECUTION COMPLETE & SUCCESSFUL.
+
+Transactions saved to: C:/Users/Administrator/Desktop/AGITHUB/fast-socialfi\broadcast\Deploy.s.sol\11155111\run-latest.json
+
+Sensitive values saved to: C:/Users/Administrator/Desktop/AGITHUB/fast-socialfi/cache\Deploy.s.sol\11155111\run-latest.json
+
