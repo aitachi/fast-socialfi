@@ -1,5 +1,11 @@
 # Fast SocialFi - Decentralized Social Finance Platform
 
+**作者/Author**: Aitachi  
+**邮箱/Email**: 44158892@qq.com  
+**日期/Date**: 11-02-2025 17
+
+---
+
 [![Ethereum](https://img.shields.io/badge/Ethereum-Sepolia-blue)](https://sepolia.etherscan.io/)
 [![Solidity](https://img.shields.io/badge/Solidity-0.8.20-orange)](https://soliditylang.org/)
 [![Node.js](https://img.shields.io/badge/Node.js-18+-green)](https://nodejs.org/)

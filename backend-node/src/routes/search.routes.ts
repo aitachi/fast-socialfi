@@ -1,3 +1,9 @@
+/**
+ * Author: Aitachi
+ * Email: 44158892@qq.com
+ * Date: 11-02-2025 17
+ */
+
 import { Router } from 'express';
 import searchUtil from '../utils/search';
 import { optionalAuth } from '../middlewares/auth';

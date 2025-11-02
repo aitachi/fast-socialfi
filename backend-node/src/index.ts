@@ -1,3 +1,9 @@
+/**
+ * Author: Aitachi
+ * Email: 44158892@qq.com
+ * Date: 11-02-2025 17
+ */
+
 import express, { Express, Request, Response, NextFunction } from 'express';
 import cors from 'cors';
 import helmet from 'helmet';

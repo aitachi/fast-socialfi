@@ -1,3 +1,9 @@
+/**
+ * Author: Aitachi
+ * Email: 44158892@qq.com
+ * Date: 11-02-2025 17
+ */
+
 import db from '../config/database';
 import { User, CreateUserDTO, UpdateUserDTO, PaginatedResult } from '../types';
 import cacheUtil from '../utils/cache';

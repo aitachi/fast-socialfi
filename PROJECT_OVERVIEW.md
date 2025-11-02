@@ -1,5 +1,11 @@
 # Fast SocialFi - 项目概述
 
+**作者/Author**: Aitachi  
+**邮箱/Email**: 44158892@qq.com  
+**日期/Date**: 11-02-2025 17
+
+---
+
 **作者**: Aitachi  
 **邮箱**: 44158892@qq.com  
 **版本**: v1.0.0  

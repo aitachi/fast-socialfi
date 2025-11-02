@@ -1,4 +1,10 @@
 /**
+ * Author: Aitachi
+ * Email: 44158892@qq.com
+ * Date: 11-02-2025 17
+ */
+
+/**
  * Fast SocialFi 服务测试脚本
  * 测试所有数据库和中间件服务的连接性和性能
  */

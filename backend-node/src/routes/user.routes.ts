@@ -1,3 +1,9 @@
+/**
+ * Author: Aitachi
+ * Email: 44158892@qq.com
+ * Date: 11-02-2025 17
+ */
+
 import { Router } from 'express';
 import userController from '../controllers/UserController';
 import { authenticate } from '../middlewares/auth';

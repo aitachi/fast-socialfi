@@ -1,5 +1,11 @@
 # Fast SocialFi - Quick Start Guide
 
+**作者/Author**: Aitachi  
+**邮箱/Email**: 44158892@qq.com  
+**日期/Date**: 11-02-2025 17
+
+---
+
 **Author:** Aitachi <44158892@qq.com>
 **Last Updated:** 2025-11-02
 
