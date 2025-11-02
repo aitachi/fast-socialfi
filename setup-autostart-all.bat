@@ -1,77 +1,51 @@
 @echo off
-REM =========================================
-REM 配置所有服务开机自启动 (Windows)
-REM =========================================
+REM Fast SocialFi - Setup Auto-start on Windows
 
 echo.
 echo ========================================
-echo Fast SocialFi - 配置开机自启动
+echo Fast SocialFi - Auto-start Setup
 echo ========================================
 echo.
 
-REM Get the current directory
-set CURRENT_DIR=%~dp0
+set SCRIPT_NAME=fast-socialfi-autostart.bat
+set STARTUP_FOLDER=%APPDATA%\Microsoft\Windows\Start Menu\Programs\Startup
+set PROJECT_DIR=%~dp0
 
-REM Create startup script in Windows Startup folder
-set STARTUP_SCRIPT=%APPDATA%\Microsoft\Windows\Start Menu\Programs\Startup\fast-socialfi-all-services.bat
+echo Creating startup script...
 
-echo 正在创建启动脚本...
+REM Create the autostart script
+(
+echo @echo off
+echo REM Fast SocialFi Auto-start Script
+echo REM Wait for Docker Desktop to start
+echo timeout /t 45 /nobreak ^>nul
 echo.
+echo REM Navigate to project directory
+echo cd /d "%PROJECT_DIR%"
+echo.
+echo REM Start all services
+echo docker-compose up -d
+echo.
+echo REM Log startup time
+echo echo [%%date%% %%time%%] Services started ^>^> startup.log
+echo.
+echo exit
+) > "%STARTUP_FOLDER%\%SCRIPT_NAME%"
 
-echo @echo off > "%STARTUP_SCRIPT%"
-echo REM Fast SocialFi 所有服务自启动 >> "%STARTUP_SCRIPT%"
-echo. >> "%STARTUP_SCRIPT%"
-echo REM 等待 Docker Desktop 启动 >> "%STARTUP_SCRIPT%"
-echo timeout /t 45 /nobreak ^>nul >> "%STARTUP_SCRIPT%"
-echo. >> "%STARTUP_SCRIPT%"
-echo REM 切换到项目目录 >> "%STARTUP_SCRIPT%"
-echo cd /d "%CURRENT_DIR%" >> "%STARTUP_SCRIPT%"
-echo. >> "%STARTUP_SCRIPT%"
-echo REM 启动所有服务 >> "%STARTUP_SCRIPT%"
-echo docker-compose -f docker-compose.full.yml up -d >> "%STARTUP_SCRIPT%"
-echo. >> "%STARTUP_SCRIPT%"
-echo REM 记录启动时间 >> "%STARTUP_SCRIPT%"
-echo echo [%%date%% %%time%%] All services started ^>^> startup.log >> "%STARTUP_SCRIPT%"
-
-echo [完成] 自启动脚本已创建
-echo.
-echo 位置: %STARTUP_SCRIPT%
-echo.
-
-echo ========================================
-echo 重要配置步骤:
-echo ========================================
-echo.
-echo 1. 确保 Docker Desktop 开机自启动:
-echo    - 打开 Docker Desktop
-echo    - Settings -^> General
-echo    - 勾选 "Start Docker Desktop when you log in"
-echo    - 点击 "Apply & Restart"
-echo.
-echo 2. 服务列表:
-echo    ✓ PostgreSQL (端口 5432)
-echo    ✓ Redis (端口 6379)
-echo    ✓ Elasticsearch (端口 9200, 9300)
-echo    ✓ Kafka (端口 9092, 9093)
-echo    ✓ Kafka UI (端口 8090)
-echo.
-echo 3. 测试自启动:
-echo    - 重启计算机
-echo    - 等待约 1-2 分钟
-echo    - 运行: docker ps
-echo    - 应该能看到所有 5 个容器
-echo.
-
-echo ========================================
-echo 配置完成!
-echo ========================================
-echo.
-echo 自启动功能:
-echo  ✓ 系统启动后自动运行所有服务
-echo  ✓ 容器崩溃后自动重启 (restart: always)
-echo  ✓ Docker 重启后自动恢复
-echo.
-echo 提示: 启动脚本等待 45 秒以确保 Docker 完全启动
-echo.
+if %errorlevel% equ 0 (
+    echo.
+    echo [OK] Auto-start configured successfully!
+    echo.
+    echo Script location: %STARTUP_FOLDER%\%SCRIPT_NAME%
+    echo.
+    echo NOTE: Make sure Docker Desktop is set to start on login:
+    echo   Docker Desktop ^> Settings ^> General ^> Start Docker Desktop when you log in
+    echo.
+) else (
+    echo.
+    echo [ERROR] Failed to create startup script
+    echo Please run this script as Administrator
+    echo.
+)
 
 pause
