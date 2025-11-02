@@ -1,0 +1,10 @@
+{
+  "network": "sepolia",
+  "deployer": "0x197131c5e0400602fFe47009D38d12f815411149",
+  "timestamp": "2025-11-02T07:21:08.071Z",
+  "SocialToken": "0x8110ff880fa5a49Ba6C64B01258fD39bC76654c6",
+  "SocialNFT": "0x7D13829EF503AC0A9d935a708c1948e9cAEe1b3c",
+  "ContentRegistry": "0xA9b895C81ba07de36BA567E06351D4F23aE196af",
+  "Staking": "0x7c9C7ED2363A76D0209c4c815E80f9784c29a0B5",
+  "Governance": "0x4a5e2bD11D59a97f74635972c83Eef08E115d8FD"
+}

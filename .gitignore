@@ -1,29 +1,25 @@
-# Foundry
-out/
-cache/
-broadcast/
+# Dependencies
+node_modules/
 lib/
 
-# Go
-*.exe
-*.exe~
-*.dll
-*.so
-*.dylib
-*.test
-*.out
-vendor/
-bin/
-tmp/
+# Build outputs
+dist/
+build/
+artifacts/
+cache/
+typechain-types/
 
-# Environment
+# Environment variables
 .env
 .env.local
 .env.*.local
+.env.docker
 
 # IDE
-.idea/
 .vscode/
+.idea/
+.claude/
+.cursor/
 *.swp
 *.swo
 *~
@@ -36,30 +32,23 @@ Thumbs.db
 logs/
 *.log
 npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+lerna-debug.log*
 
-# Database
-*.db
-*.sqlite
-*.sqlite3
-
-# Coverage
+# Testing
 coverage/
-coverage.txt
-*.coverprofile
+.nyc_output/
 
-# Build
-build/
-dist/
-
-# Node
-node_modules/
-package-lock.json
-yarn.lock
-
-# Test
-.testcache/
-
-# Temporary
+# Temporary files
 tmp/
 temp/
 *.tmp
+nul
+
+# Docker
+docker-compose.override.yml
+
+# Reports
+RESOURCE_USAGE_REPORT.json
+SERVICE_TEST_REPORT.json

@@ -1,0 +1,17 @@
+{
+  "network": "sepolia",
+  "timestamp": "2025-11-02T07:21:08.071Z",
+  "deployments": {
+    "SocialToken": "0xde401a1a280844d9d2b8b432fd83f7c6038f3980956d0df06f6d29cb19e20369",
+    "SocialNFT": "0x6797148fe5ec5c2b148c3a480dbd7f8d7f560f314b9a78e7efc34f2911e84831",
+    "ContentRegistry": "0xf4ca8a6425db89d95ab93daa7b629315df8ecb26e906e6edd83b65b294364ad0",
+    "Staking": "0xcb0a206b0df833cb791c5cd25be0de0a3274e58f7496e677381221486584929b",
+    "Governance": "0x105814b3478fa7deba98d1eea3bd81ca114b9dae96a0c3f51abbf318084bd8ce"
+  },
+  "configurations": {
+    "stakingApproval": "0xfaea3571f9fcca47967670b8cd81c75d1f467c811a6f8d9b38a0f07790d83e96",
+    "stakingFund": "0x69c3f167a6e6b72351719435cdbf1c0a6f6921f8aa1b08adcbf364d52c2e7e14",
+    "governanceApproval": "0xb1125ca226163022d8a3889b11f25f18d9482ac35199b29d1a65c8aeca5bf393",
+    "governanceFund": "0x1b6b063bd67fd68cc4e9957a01903d2fa4b650e4e52092743b5cdb12b6ca3108"
+  }
+}

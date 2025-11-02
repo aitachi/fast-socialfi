@@ -1,0 +1,15 @@
+[Unit]
+Description=Fast SocialFi Docker Services
+Requires=docker.service
+After=docker.service
+
+[Service]
+Type=oneshot
+RemainAfterExit=yes
+WorkingDirectory=/home/YOUR_USERNAME/fast-socialfi
+ExecStart=/usr/bin/docker-compose -f docker-compose.full.yml up -d
+ExecStop=/usr/bin/docker-compose -f docker-compose.full.yml down
+TimeoutStartSec=0
+
+[Install]
+WantedBy=multi-user.target

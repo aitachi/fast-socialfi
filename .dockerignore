@@ -1,0 +1,70 @@
+# Node modules
+node_modules
+npm-debug.log
+yarn-error.log
+
+# Environment files
+.env.local
+.env.*.local
+
+# Git
+.git
+.gitignore
+.gitattributes
+
+# IDE
+.vscode
+.idea
+.cursor
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Build outputs
+dist
+build
+out
+cache
+broadcast
+
+# Test files
+test
+tests
+*.test.js
+*.spec.js
+coverage
+
+# Documentation
+docs
+*.md
+!README.md
+
+# Logs
+logs
+*.log
+audit_results
+
+# Foundry
+lib
+foundry.toml
+foundry.lock
+remappings.txt
+
+# Scripts
+scripts
+script
+
+# Docker files
+Dockerfile
+docker-compose.yml
+.dockerignore
+docker-*.bat
+
+# Temporary files
+tmp
+temp
+*.tmp

@@ -1,0 +1,156 @@
+services:
+  # PostgreSQL Database
+  postgres:
+    image: postgres:16-alpine
+    container_name: socialfi-postgres
+    restart: always
+    environment:
+      POSTGRES_DB: socialfi_db
+      POSTGRES_USER: socialfi
+      POSTGRES_PASSWORD: socialfi_pg_pass_2024
+      PGDATA: /var/lib/postgresql/data/pgdata
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./database/init-postgres.sql:/docker-entrypoint-initdb.d/init.sql
+    command:
+      - "postgres"
+      - "-c"
+      - "max_connections=200"
+      - "-c"
+      - "shared_buffers=256MB"
+      - "-c"
+      - "effective_cache_size=1GB"
+      - "-c"
+      - "work_mem=1310kB"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U socialfi -d socialfi_db"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - socialfi-network
+
+  # Redis Cache
+  redis:
+    image: redis:7-alpine
+    container_name: socialfi-redis
+    restart: always
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+      - ./redis.conf:/usr/local/etc/redis/redis.conf
+    command: redis-server /usr/local/etc/redis/redis.conf
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - socialfi-network
+
+  # Elasticsearch
+  elasticsearch:
+    image: elasticsearch:8.11.3
+    container_name: socialfi-elasticsearch
+    restart: always
+    environment:
+      - node.name=socialfi-es-node
+      - cluster.name=socialfi-cluster
+      - discovery.type=single-node
+      - bootstrap.memory_lock=true
+      - "ES_JAVA_OPTS=-Xms512m -Xmx512m"
+      - xpack.security.enabled=false
+      - xpack.security.enrollment.enabled=false
+      - xpack.security.http.ssl.enabled=false
+      - xpack.security.transport.ssl.enabled=false
+    ulimits:
+      memlock:
+        soft: -1
+        hard: -1
+      nofile:
+        soft: 65536
+        hard: 65536
+    ports:
+      - "9200:9200"
+      - "9300:9300"
+    volumes:
+      - es_data:/usr/share/elasticsearch/data
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:9200/_cluster/health || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 60s
+    networks:
+      - socialfi-network
+
+  # Kafka (KRaft mode - no ZooKeeper)
+  kafka:
+    image: apache/kafka:3.7.0
+    container_name: socialfi-kafka
+    restart: always
+    ports:
+      - "9092:9092"
+      - "9093:9093"
+    environment:
+      # KRaft 配置
+      KAFKA_NODE_ID: 1
+      KAFKA_PROCESS_ROLES: broker,controller
+      KAFKA_CONTROLLER_QUORUM_VOTERS: 1@kafka:9093
+      KAFKA_CONTROLLER_LISTENER_NAMES: CONTROLLER
+
+      # 监听器配置
+      KAFKA_LISTENERS: PLAINTEXT://0.0.0.0:9092,CONTROLLER://0.0.0.0:9093
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://localhost:9092
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: CONTROLLER:PLAINTEXT,PLAINTEXT:PLAINTEXT
+      KAFKA_INTER_BROKER_LISTENER_NAME: PLAINTEXT
+
+      # 日志配置
+      KAFKA_LOG_DIRS: /var/lib/kafka/data
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+      KAFKA_TRANSACTION_STATE_LOG_REPLICATION_FACTOR: 1
+      KAFKA_TRANSACTION_STATE_LOG_MIN_ISR: 1
+      KAFKA_GROUP_INITIAL_REBALANCE_DELAY_MS: 0
+
+      # JVM 配置
+      KAFKA_HEAP_OPTS: "-Xmx512M -Xms512M"
+
+      # 集群 ID (KRaft 必需)
+      CLUSTER_ID: "MkU3OEVBNTcwNTJENDM2Qk"
+    volumes:
+      - kafka_data:/var/lib/kafka/data
+    networks:
+      - socialfi-network
+
+  # Kafka UI (可选，用于管理 Kafka)
+  kafka-ui:
+    image: provectuslabs/kafka-ui:latest
+    container_name: socialfi-kafka-ui
+    restart: always
+    ports:
+      - "8090:8080"
+    environment:
+      KAFKA_CLUSTERS_0_NAME: socialfi-cluster
+      KAFKA_CLUSTERS_0_BOOTSTRAPSERVERS: kafka:9092
+      DYNAMIC_CONFIG_ENABLED: "true"
+    depends_on:
+      - kafka
+    networks:
+      - socialfi-network
+
+volumes:
+  postgres_data:
+    driver: local
+  redis_data:
+    driver: local
+  es_data:
+    driver: local
+  kafka_data:
+    driver: local
+
+networks:
+  socialfi-network:
+    driver: bridge

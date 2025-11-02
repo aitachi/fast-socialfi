@@ -1,0 +1,41 @@
+{
+  "network": "sepolia",
+  "timestamp": "2025-11-02T07:25:15.075Z",
+  "tests": {
+    "tokenTransfer": {
+      "description": "Transfer 1000.0 SOCIAL tokens",
+      "txHash": "0x1da9e7345d60ad334df7e0e83125848d7ce73a5e0e2973b51e4719f66e921e78",
+      "success": true
+    },
+    "nftMint": {
+      "description": "Mint NFT with IPFS URI",
+      "txHash": "0xe514f679d5a4f0d18cc67af3aa2c1e0adc2653222f6c69d85ab56170fbf499d8",
+      "success": true
+    },
+    "contentRegister": {
+      "description": "Register content with IPFS hash",
+      "txHash": "0x24bc98e8cfe2f11c126f53417fffc396b8d779c5c61a4934a03250574399848a",
+      "success": true
+    },
+    "contentTipETH": {
+      "description": "Tip content with 0.01 ETH",
+      "txHash": "0x318372eba6112d22664ba5b44effea445d8f3cc67fa314047f88dd8c9bcd8c51",
+      "success": true
+    },
+    "tokenStake": {
+      "description": "Stake 100.0 SOCIAL for 7 days",
+      "txHash": "0xa1388e228bb45c4ebb5fb9448842ae8ca1704ecf3164b82f907290ad8c715c2c",
+      "success": true
+    },
+    "governanceProposal": {
+      "description": "Create governance proposal",
+      "txHash": "0x46a3f89eecb2ac36d3055584ceb2dffbffd3d8b5572702e8125af69fbe3bffec",
+      "success": true
+    },
+    "governanceVote": {
+      "description": "Vote on governance proposal",
+      "txHash": "0xa69d436636eac926a6f31818f50e3f60fc5e14ca041d17cb533d1f6e06f48e43",
+      "success": true
+    }
+  }
+}

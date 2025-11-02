@@ -1,0 +1,93 @@
+services:
+  # MySQL Database
+  mysql:
+    image: mysql:8.0
+    container_name: socialfi-mysql
+    restart: always
+    environment:
+      MYSQL_ROOT_PASSWORD: socialfi_root_2024
+      MYSQL_DATABASE: socialfi_db
+      MYSQL_USER: socialfi
+      MYSQL_PASSWORD: socialfi_pass_2024
+    ports:
+      - "13306:3306"  # 使用 13306 避免与本地 MySQL 冲突
+    volumes:
+      - mysql_data:/var/lib/mysql
+      - ./database/init.sql:/docker-entrypoint-initdb.d/init.sql
+    command: --default-authentication-plugin=mysql_native_password --character-set-server=utf8mb4 --collation-server=utf8mb4_unicode_ci
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - socialfi-network
+
+  # Redis Cache
+  redis:
+    image: redis:7-alpine
+    container_name: socialfi-redis
+    restart: always
+    ports:
+      - "16379:6379"  # 使用 16379 避免与本地 Redis 冲突
+    volumes:
+      - redis_data:/data
+    command: redis-server --appendonly yes --requirepass socialfi_redis_2024
+    healthcheck:
+      test: ["CMD", "redis-cli", "--raw", "incr", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - socialfi-network
+
+  # Backend Application
+  backend:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: socialfi-backend
+    restart: always
+    ports:
+      - "8080:8080"
+    environment:
+      - NODE_ENV=production
+      - DB_HOST=mysql
+      - DB_PORT=3306
+      - DB_USER=socialfi
+      - DB_PASSWORD=socialfi_pass_2024
+      - DB_NAME=socialfi_db
+      - REDIS_HOST=redis
+      - REDIS_PORT=6379
+      - REDIS_PASSWORD=socialfi_redis_2024
+    env_file:
+      - .env
+    depends_on:
+      mysql:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    volumes:
+      - ./backend:/app/backend
+      - ./contracts:/app/contracts
+      - node_modules:/app/node_modules
+    networks:
+      - socialfi-network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+volumes:
+  mysql_data:
+    driver: local
+  redis_data:
+    driver: local
+  node_modules:
+    driver: local
+
+networks:
+  socialfi-network:
+    driver: bridge

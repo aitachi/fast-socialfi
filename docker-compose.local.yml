@@ -1,0 +1,38 @@
+services:
+  # Backend Application (连接本地 MySQL 和 Redis)
+  backend:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: socialfi-backend
+    restart: always
+    ports:
+      - "8080:8080"
+    environment:
+      - NODE_ENV=production
+      - DB_HOST=host.docker.internal  # 连接宿主机的 MySQL
+      - DB_PORT=3306
+      - DB_USER=root
+      - DB_PASSWORD=
+      - DB_NAME=socialfi_db
+      - REDIS_HOST=host.docker.internal  # 连接宿主机的 Redis
+      - REDIS_PORT=6379
+      - REDIS_PASSWORD=
+    env_file:
+      - .env
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    volumes:
+      - ./backend:/app/backend
+      - ./contracts:/app/contracts
+      - node_modules:/app/node_modules
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+volumes:
+  node_modules:
+    driver: local
